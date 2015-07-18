@@ -21,6 +21,7 @@
 //                          Using ASCOM trace log instead of custom
 // 16-11-2013	XXX	2.0.1	final release 
 // 17-11-2013	XXX	2.0.2	caching improvements 
+// 18-07-2015	XXX	2.0.3	trying to make source code work again :)
 
 
 // This is used to define code in the template that is specific to one class implementation
@@ -43,7 +44,7 @@ using System.Collections;
 
 using IP9212_switch;
 
-namespace ASCOM.IP9212_rolloffroof2
+namespace ASCOM.IP9212_rolloffroof3
 {
     //
     // Your driver's DeviceID is ASCOM.IP9212_rolloffroof2.Dome
@@ -67,12 +68,12 @@ namespace ASCOM.IP9212_rolloffroof2
         /// ASCOM DeviceID (COM ProgID) for this driver.
         /// The DeviceID is used by ASCOM applications to load the driver at runtime.
         /// </summary>
-        internal static string driverID = "ASCOM.IP9212_rolloffroof2.Dome";
+        internal static string driverID = "ASCOM.IP9212_rolloffroof3.Dome";
         /// <summary>
         /// Driver description that displays in the ASCOM Chooser.
         /// </summary>
         private static string driverDescription = "ASCOM Dome driver for roll-off roof controlled by Aviosys IP9212. Written by Boris Emchenko http://astromania.info";
-        private static string driverDescriptionShort = "Roll-off roof on IP9212";
+        private static string driverDescriptionShort = "Roll-off roof on IP9212v3";
 
         internal static string traceStateProfileName = "Trace Level";
         internal static string traceStateDefault = "true";
@@ -123,7 +124,7 @@ namespace ASCOM.IP9212_rolloffroof2
         /// <summary>
         /// Private variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
         /// </summary>
-        private TraceLogger2 tl;
+        private TraceLogger tl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IP9212_rolloffroof2"/> class.
@@ -134,7 +135,7 @@ namespace ASCOM.IP9212_rolloffroof2
             #if DEBUG
             
             #endif
-            tl = new TraceLogger2("", "IP9212_rolloffroof2");
+            tl = new TraceLogger("", "IP9212_rolloffroof2");
             tl.Enabled = true; //at least for debugging - log will be always created no matter the value of traceState
             tl.LogMessage("Dome", "Starting initialisation");
 
@@ -596,7 +597,7 @@ namespace ASCOM.IP9212_rolloffroof2
 
                 
                 //Measure how much time have passed since last HARDWARE measure
-                TimeSpan passed = DateTime.Now - Hardware.lastInputStatusCheck;
+                TimeSpan passed = DateTime.Now - Hardware.lastShutterStatusCheck;
 
                 if (passed.TotalSeconds > checkInterval)
                 {

@@ -1,0 +1,26 @@
+﻿ASCOM Aviosys IP9212 Dome driver
+Written by Boris Emchenko
+http://astromania.info
+
+ASCOM Driver for roll-off roof controling by AvioSys IP9212 power server. It receives commands by http protocol commands
+
+Change log
+2.0.2	17-11-2013	
+- caching improvements 
+
+2.0.1	16-11-2013	
+- final release 
+
+2.0.0	30-10-2013
+- rewriting driver based on new ASCOM template. 
+- Using standalone driver for controlling Aviosys IP 9212 (using some elemenets of ASCOM switch wich is not disclosed yet)
+- Using ASCOM trace log instead of custom
+
+0.1.2	30-09-2013	
+- impemented caching for reading connected and shutter states
+
+0.1.1	15-09-2013
+- starting impementing caching for reading connected and shutter states
+
+0.1.0 [12-06-2013]
+- Initial edit, created from ASCOM driver template

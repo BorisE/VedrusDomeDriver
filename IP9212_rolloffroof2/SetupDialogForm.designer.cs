@@ -1,4 +1,4 @@
-namespace ASCOM.IP9212_rolloffroof2
+namespace ASCOM.IP9212_rolloffroof3
 {
     partial class SetupDialogForm
     {
@@ -86,7 +86,7 @@ namespace ASCOM.IP9212_rolloffroof2
             // 
             this.picASCOM.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.picASCOM.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.picASCOM.Image = global::ASCOM.IP9212_rolloffroof2.Properties.Resources.ASCOM;
+            this.picASCOM.Image = global::ASCOM.IP9212_rolloffroof3.Properties.Resources.ASCOM;
             this.picASCOM.Location = new System.Drawing.Point(292, 9);
             this.picASCOM.Name = "picASCOM";
             this.picASCOM.Size = new System.Drawing.Size(48, 56);

@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using ASCOM.Utilities;
-using ASCOM.IP9212_rolloffroof2;
+using ASCOM.IP9212_rolloffroof3;
 
-namespace ASCOM.IP9212_rolloffroof2
+namespace ASCOM.IP9212_rolloffroof3
 {
     [ComVisible(false)]					// Form not registered for COM!
     public partial class SetupDialogForm : Form
