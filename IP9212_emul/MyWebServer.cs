@@ -14,7 +14,7 @@ namespace IP9212_emul
         private TcpListener myListener;
         private int port = 5050;  // Select any free port you wish 
 
-        internal IP9212device Hardware;
+        internal IP9212device_emul Hardware;
 
         public MyWebServer()
         {
@@ -29,7 +29,7 @@ namespace IP9212_emul
                 Thread th = new Thread(new ThreadStart(StartListen));
                 th.Start();
 
-                Hardware = new IP9212device();
+                Hardware = new IP9212device_emul();
 
             }
             catch (Exception e)
@@ -156,21 +156,39 @@ namespace IP9212_emul
                     }
                     else
                     {
+                        sResponse = "";
 
+                        //Parser parameter string 
+                        // (should be called 1st)
                         Hardware.ParseParameters(sGetStr);
 
-                        sResponse = "User : "+Hardware.username + "<br>"
-                            + "Pass : " + Hardware.pass + "<br>"
-                            + "CMD : " + Hardware.cmd + "<br>";
+                        if (Hardware.debugf)
+                        {
+                            sResponse += "User : " + Hardware.username + "<br>"
+                                + "Pass : " + Hardware.pass + "<br>"
+                                + "CMD : " + Hardware.cmd + "<br>";
+                        }
 
+                        //Parse commmands
+                        //should be called 2nd
                         string output=Hardware.ParseCommand();
 
-                        sResponse += "Output : " + output + "<br>";
+                        //Now output results
+                        if (Hardware.debugf)
+                        {
+                            sResponse += "Output : " + output + "<br>";
+                        }
+                        else
+                        {
+                            sResponse += output;
+                        }
 
-                        sResponse += "<br><br>"+Hardware.LittleHelp();
+                        if (Hardware.debugf)
+                        {
+                            sResponse += "<br><br>" + Hardware.LittleHelp();
+                        }
 
                         SendHeader(sHttpVersion, sMimeType, sResponse.Length, " 200 OK", ref mySocket);
-
                         SendToBrowser(sResponse, ref mySocket);
 
                         Console.WriteLine("Response : " + sResponse);

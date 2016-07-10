@@ -21,8 +21,9 @@ namespace IP9212_emul
         shutterError = 4 // Dome shutter status error  
     }
 
-    class IP9212device
+    class IP9212device_emul
     {
+        public bool debugf = false;
 
         public const string SWITCH_PORT = "5";
         public const string OPENED_PORT = "6";
@@ -34,12 +35,13 @@ namespace IP9212_emul
         public string username = "";
         public string pass = "";
         public string cmd = "";
-
+        public string cmd_flags = "";
+        
         Dictionary<string, int> InputState = new Dictionary<string, int>();
         Dictionary<string, int> OutputState = new Dictionary<string, int>();
         private int MOVING_TIME=10;
 
-        public IP9212device()
+        public IP9212device_emul()
         {
             //init device
             InputState.Add("1", 1);
@@ -81,6 +83,10 @@ namespace IP9212_emul
 
             //http://192.168.1.147/Set.cmd?CMD=setpower+P63=1
 
+
+            //lowercase all chars for comparison
+            ParamStr = ParamStr.ToLower();
+
             //Get User name for case 2
             int iStartPos = ParamStr.IndexOf("user=");
             int iEndPos = ParamStr.IndexOf("+");
@@ -98,7 +104,7 @@ namespace IP9212_emul
 
             //Get PASSWORD for case 2
             iStartPos = ParamStr.IndexOf("pass=") + 5;
-            iEndPos = ParamStr.IndexOf("CMD=");
+            iEndPos = ParamStr.IndexOf("cmd=");
             iEndPos = (iEndPos < 0 ? ParamStr.Length : iEndPos);
 
             if (iStartPos < 0)
@@ -111,14 +117,24 @@ namespace IP9212_emul
             }
 
             //Parse COMMAND
-            iStartPos = ParamStr.IndexOf("CMD=");
-            cmd = ParamStr.Substring(iStartPos + 4);
+            iStartPos = ParamStr.IndexOf("cmd=");
+            iEndPos = ParamStr.IndexOf("&");
+            iEndPos = (iEndPos < 0 ? ParamStr.Length : iEndPos);
+            cmd = ParamStr.Substring(iStartPos + 4, iEndPos - iStartPos-4);
+
+            //Parse COMMAND FLAGS
+            iStartPos = ParamStr.IndexOf("&");
+            cmd_flags = ParamStr.Substring(iStartPos + 1);
+
+            //check special flags (debug)
+            CheckCommandFlags();
         }
 
         public string ParseCommand()
         {
             //emulation check
             RoofBehaviorEmulation_Check();
+
 
             string ret = "";
             if (cmd == "getio")
@@ -138,6 +154,17 @@ namespace IP9212_emul
 
         }
 
+        public void CheckCommandFlags()
+        {
+            if (cmd_flags.IndexOf("debug=1")>=0)
+            {
+                debugf = true;
+            }
+            if (cmd_flags.IndexOf("debug=0") >= 0)
+            {
+                debugf = false;
+            }
+        }
 
         private string ListOutput()
         {

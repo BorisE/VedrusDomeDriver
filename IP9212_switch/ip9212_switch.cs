@@ -19,7 +19,7 @@ namespace IP9212_switch
     /// </summary>
     public class IP9212_switch_class
     {
-        internal bool debugFlag = true;
+        internal bool debugFlag = false;
 
         public static string IP9212_switch_id = "IP9212_switch";
         public static string IP9212_switch_description = "Aviosys IP9212 observatory switch driver. Written by Boris Emchenko http://astromania.info";
