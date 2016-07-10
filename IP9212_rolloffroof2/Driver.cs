@@ -60,7 +60,7 @@ namespace ASCOM.IP9212_rolloffroof3
     /// <summary>
     /// ASCOM Dome Driver for IP9212_rolloffroof2.
     /// </summary>
-    [Guid("403aba40-b646-4c17-9ad5-1270bb36c937")]
+    [Guid("C9ACEBB9-0391-4EB6-9D15-5483FDE4F205")]
     [ClassInterface(ClassInterfaceType.None)]
     public class Dome : IDomeV2
     {
