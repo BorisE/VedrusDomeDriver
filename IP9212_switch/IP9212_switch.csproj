@@ -56,7 +56,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ip9212_switch.cs" />
+    <Compile Include="ip9212_switch.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -81,6 +83,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ASCOM.ico" />
+    <None Include="Resources\logo_48_blue.png" />
     <None Include="Resources\logo112x60.png" />
     <None Include="Resources\logo112.png" />
     <None Include="Resources\logo.png" />

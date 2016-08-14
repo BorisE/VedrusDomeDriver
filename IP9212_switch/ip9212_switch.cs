@@ -14,6 +14,18 @@ using ASCOM.DeviceInterface;
 
 namespace IP9212_switch
 {
+    public class MyWebClient : WebClient
+    {
+        static public int Timeout = 5 * 1000;
+
+        protected override WebRequest GetWebRequest(Uri uri)
+        {
+            WebRequest w = base.GetWebRequest(uri);
+            w.Timeout = Timeout;
+            return w;
+        }
+    }
+
     /// <summary>
     /// Class for working with ip9212 device
     /// </summary>
@@ -241,6 +253,8 @@ namespace IP9212_switch
 
             string siteipURL;
             siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
+            // new style
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
             //FOR DEBUGGING
             if (debugFlag)
             {
@@ -250,7 +264,7 @@ namespace IP9212_switch
             tl.LogMessage("CheckLink_async", "download url:" + siteipURL);
 
             // Send http query
-            WebClient client = new WebClient();
+            MyWebClient client = new MyWebClient();
             try
             {
                 tl.LogMessage("Semaphore", "WaitOne");
@@ -334,6 +348,9 @@ namespace IP9212_switch
 
             string siteipURL;
             siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
+            // new style
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
+
             //FOR DEBUGGING
             if (debugFlag)
             {
@@ -348,7 +365,7 @@ namespace IP9212_switch
             IP9212Semaphore.WaitOne(); // lock working with IP9212
 
             string s = "";
-            WebClient client = new WebClient();
+            MyWebClient client = new MyWebClient();
             try
             {
                 Stream data = client.OpenRead(uri_siteipURL);
@@ -410,6 +427,9 @@ namespace IP9212_switch
 
             string siteipURL;
             siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
+            // new style
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
+
             //FOR DEBUGGING
             if (debugFlag)
             {
@@ -421,7 +441,7 @@ namespace IP9212_switch
             tl.LogMessage("Semaphore", "waitone");
             IP9212Semaphore.WaitOne(); // lock working with IP9212
             string s = "";
-            WebClient client = new WebClient();
+            MyWebClient client = new MyWebClient();
             try
             {
                 Stream data = client.OpenRead(siteipURL);
@@ -524,6 +544,8 @@ namespace IP9212_switch
             }
             string siteipURL;
             siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getpower";
+            // new style
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getpower";
 
             //FOR DEBUGGING
             if (debugFlag)
@@ -538,7 +560,7 @@ namespace IP9212_switch
             IP9212Semaphore.WaitOne(); // lock working with IP9212
 
             string s = "";
-            WebClient client = new WebClient();
+            MyWebClient client = new MyWebClient();
             try
             {
                 Stream data = client.OpenRead(siteipURL);
@@ -639,6 +661,8 @@ namespace IP9212_switch
                 //return ret;
             }
             string siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=setpower+P6" + PortNumber + "=" + PortValue;
+            // new style
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=setpower+P6" + HardPortNumber + "=" + intPortValue;
             //FOR DEBUGGING
             if (debugFlag)
             {
@@ -651,7 +675,7 @@ namespace IP9212_switch
             tl.LogMessage("Semaphore", "waitone");
             IP9212Semaphore.WaitOne(); // lock working with IP9212
             string s = "";
-            WebClient client = new WebClient();
+            MyWebClient client = new MyWebClient();
             try
             {
                 Stream data = client.OpenRead(siteipURL);
@@ -867,10 +891,50 @@ namespace IP9212_switch
                 //System.Collections.ArrayList T = p.RegisteredDeviceTypes;
                 p.DeviceType = "Switch";
 
-                ip_addr = p.GetValue(IP9212_switch_id, ip_addr_profilename, string.Empty, ip_addr_default);
-                ip_port = p.GetValue(IP9212_switch_id, ip_port_profilename, string.Empty, ip_port_default);
-                ip_login = p.GetValue(IP9212_switch_id, ip_login_profilename, string.Empty, ip_login_default);
-                ip_pass = p.GetValue(IP9212_switch_id, ip_pass_profilename, string.Empty, ip_pass_default);
+                //General settings
+                try
+                {
+                    ip_addr = p.GetValue(IP9212_switch_id, ip_addr_profilename, string.Empty, ip_addr_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_addr_profilename, ip_addr_default);
+                    ip_addr = ip_addr_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_addr]: [" + e.Message + "]");
+                }
+                try
+                {
+                    ip_port = p.GetValue(IP9212_switch_id, ip_port_profilename, string.Empty, ip_port_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_port_profilename, ip_port_default);
+                    ip_port = ip_port_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_port]: [" + e.Message + "]");
+                }
+                try
+                {
+                    ip_login = p.GetValue(IP9212_switch_id, ip_login_profilename, string.Empty, ip_login_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_login_profilename, ip_login_default);
+                    ip_login = ip_login_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_login]: [" + e.Message + "]");
+                }
+
+                try
+                {
+                    ip_pass = p.GetValue(IP9212_switch_id, ip_pass_profilename, string.Empty, ip_pass_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_pass_profilename, ip_pass_default);
+                    ip_pass = ip_pass_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_pass]: [" + e.Message + "]");
+                }
+
+
 
                 try
                 {

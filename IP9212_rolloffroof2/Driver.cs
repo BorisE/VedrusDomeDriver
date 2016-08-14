@@ -22,6 +22,7 @@
 // 16-11-2013	XXX	2.0.1	final release 
 // 17-11-2013	XXX	2.0.2	caching improvements 
 // 18-07-2015	XXX	2.0.3	trying to make source code work again :)
+// 13-08-2016	XXX	2.1.0	modified login mechanizm
 
 
 // This is used to define code in the template that is specific to one class implementation
@@ -173,7 +174,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // or call a different dialog if connected
             if (IsConnected())
             {
-                System.Windows.Forms.MessageBox.Show("Already connected, just press OK");
+                System.Windows.Forms.MessageBox.Show("Already connected, disconnect to modify settings");
             }
             else
             {
@@ -207,7 +208,37 @@ namespace ASCOM.IP9212_rolloffroof3
 
         public string Action(string actionName, string actionParameters)
         {
-            throw new ASCOM.ActionNotImplementedException("Action " + actionName + " is not implemented by this driver");
+            // Get device IP address
+            if (actionName == "IPAddress")
+            {
+                return ip_addr;
+            }
+            // Get cache settings
+            else if (actionName == "GetCacheParameter")
+            {
+                if (actionParameters == "CacheCheckConnection")
+                {
+                    return ConnectCheck_Cache_Timeout.ToString();
+                }
+                else if (actionParameters == "CacheSensorState")
+                {
+                    return OutputRead_Cache_Timeout.ToString();
+                }
+                else
+                {
+                    return "";
+                }
+            }
+            // Get cache settings
+            else if (actionName == "GetTimeout")
+            {
+                return MyWebClient.Timeout.ToString();
+            }
+            else
+            {
+                throw new ASCOM.ActionNotImplementedException("Action " + actionName + " is not implemented by this driver");
+            }
+
         }
 
         public void CommandBlind(string command, bool raw)
