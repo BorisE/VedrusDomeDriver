@@ -12,7 +12,7 @@ namespace ASCOM.IP9212_rolloffroof2
 {
     public partial class TestASCOM2 : Form
     {
-        private string DefaultDriverId = "ASCOM.IP9212_rolloffroof2.Dome";
+        private string DefaultDriverId = "ASCOM.IP9212_rolloffroof3.Dome";
         public string DriverId;
 
         private ASCOM.DriverAccess.Dome driver;
@@ -69,6 +69,13 @@ namespace ASCOM.IP9212_rolloffroof2
         private void timer1_Tick(object sender, EventArgs e)
         {
             txtShutterStatus.Text=driver.ShutterStatus.ToString();
+            txtLog.AppendText(DateTime.Now.ToString("HH:mm:ss.f") + " : " + txtShutterStatus.Text+"\n");
+        }
+
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            driver = new ASCOM.DriverAccess.Dome(DriverId);
+            driver.SetupDialog();
         }
     }
 }

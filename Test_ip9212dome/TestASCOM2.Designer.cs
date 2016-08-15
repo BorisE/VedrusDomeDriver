@@ -38,14 +38,18 @@
             this.buttonOpenShutter = new System.Windows.Forms.Button();
             this.txtDriverId = new System.Windows.Forms.TextBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.button1 = new System.Windows.Forms.Button();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.txtLog = new System.Windows.Forms.RichTextBox();
             this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             // 
             // buttonChoose
             // 
-            this.buttonChoose.Location = new System.Drawing.Point(255, 27);
+            this.buttonChoose.Location = new System.Drawing.Point(6, 57);
             this.buttonChoose.Name = "buttonChoose";
-            this.buttonChoose.Size = new System.Drawing.Size(72, 23);
+            this.buttonChoose.Size = new System.Drawing.Size(81, 23);
             this.buttonChoose.TabIndex = 1;
             this.buttonChoose.Text = "Choose";
             this.buttonChoose.UseVisualStyleBackColor = true;
@@ -53,9 +57,9 @@
             // 
             // buttonConnect
             // 
-            this.buttonConnect.Location = new System.Drawing.Point(255, 65);
+            this.buttonConnect.Location = new System.Drawing.Point(192, 29);
             this.buttonConnect.Name = "buttonConnect";
-            this.buttonConnect.Size = new System.Drawing.Size(72, 23);
+            this.buttonConnect.Size = new System.Drawing.Size(72, 51);
             this.buttonConnect.TabIndex = 2;
             this.buttonConnect.Text = "Connect";
             this.buttonConnect.UseVisualStyleBackColor = true;
@@ -67,9 +71,9 @@
             this.groupBox1.Controls.Add(this.txtShutterStatus);
             this.groupBox1.Controls.Add(this.buttonCloseShutter);
             this.groupBox1.Controls.Add(this.buttonOpenShutter);
-            this.groupBox1.Location = new System.Drawing.Point(12, 130);
+            this.groupBox1.Location = new System.Drawing.Point(2, 115);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(216, 96);
+            this.groupBox1.Size = new System.Drawing.Size(272, 96);
             this.groupBox1.TabIndex = 7;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Shutter";
@@ -116,9 +120,9 @@
             // txtDriverId
             // 
             this.txtDriverId.Enabled = false;
-            this.txtDriverId.Location = new System.Drawing.Point(12, 67);
+            this.txtDriverId.Location = new System.Drawing.Point(6, 31);
             this.txtDriverId.Name = "txtDriverId";
-            this.txtDriverId.Size = new System.Drawing.Size(224, 20);
+            this.txtDriverId.Size = new System.Drawing.Size(179, 20);
             this.txtDriverId.TabIndex = 8;
             // 
             // timer1
@@ -126,22 +130,53 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(106, 57);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(79, 23);
+            this.button1.TabIndex = 1;
+            this.button1.Text = "Setup";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click_1);
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Controls.Add(this.txtDriverId);
+            this.groupBox2.Controls.Add(this.buttonChoose);
+            this.groupBox2.Controls.Add(this.button1);
+            this.groupBox2.Controls.Add(this.buttonConnect);
+            this.groupBox2.Location = new System.Drawing.Point(2, 12);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(272, 97);
+            this.groupBox2.TabIndex = 9;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "Device";
+            // 
+            // txtLog
+            // 
+            this.txtLog.Location = new System.Drawing.Point(296, 19);
+            this.txtLog.Name = "txtLog";
+            this.txtLog.Size = new System.Drawing.Size(465, 371);
+            this.txtLog.TabIndex = 10;
+            this.txtLog.Text = "";
+            // 
             // TestASCOM2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(348, 261);
-            this.Controls.Add(this.txtDriverId);
+            this.ClientSize = new System.Drawing.Size(775, 406);
+            this.Controls.Add(this.txtLog);
+            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.buttonConnect);
-            this.Controls.Add(this.buttonChoose);
             this.Name = "TestASCOM2";
             this.Text = "TestASCOM2";
             this.Load += new System.EventHandler(this.TestASCOM2_Load);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
+            this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -156,5 +191,8 @@
         private System.Windows.Forms.Button buttonOpenShutter;
         private System.Windows.Forms.TextBox txtDriverId;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.GroupBox groupBox2;
+        private System.Windows.Forms.RichTextBox txtLog;
     }
 }

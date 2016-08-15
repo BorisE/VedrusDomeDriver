@@ -22,11 +22,11 @@
 // 16-11-2013	XXX	2.0.1	final release 
 // 17-11-2013	XXX	2.0.2	caching improvements 
 // 18-07-2015	XXX	2.0.3	trying to make source code work again :)
-// 13-08-2016	XXX	2.1.0	modified login mechanizm
-
-
-// This is used to define code in the template that is specific to one class implementation
-// unused code canbe deleted and this definition removed.
+// 15-08-2016	XXX	3.0.0	modified login mechanizm 
+//                          caching optimization 
+//                          architecture changed
+//
+//
 #define Dome
 
 using System;
@@ -43,7 +43,6 @@ using ASCOM.DeviceInterface;
 using System.Globalization;
 using System.Collections;
 
-using IP9212_switch;
 
 namespace ASCOM.IP9212_rolloffroof3
 {
@@ -59,7 +58,7 @@ namespace ASCOM.IP9212_rolloffroof3
     //
 
     /// <summary>
-    /// ASCOM Dome Driver for IP9212_rolloffroof2.
+    /// ASCOM Dome Driver for IP9212_rolloffroof3.
     /// </summary>
     [Guid("C9ACEBB9-0391-4EB6-9D15-5483FDE4F205")]
     [ClassInterface(ClassInterfaceType.None)]
@@ -106,8 +105,8 @@ namespace ASCOM.IP9212_rolloffroof3
 
         //Caching last shutter status
         private DateTime lastShutterStatusCheck = EXPIRED_CACHE; //when was the last hardware checking provided for shutter state 
-        int SHUTTERSTATUS_CHECK_INTERVAL_NORMAL = 10; //how often to chech true shutter status (in seconds) for regular cases
-        int SHUTTERSTATUS_CHECK_INTERVAL_REDUCED = 2;//how often to chech true shutter status (in seconds) when shutter is moving
+        //int SHUTTERSTATUS_CHECK_INTERVAL_NORMAL = 10; //how often to chech true shutter status (in seconds) for regular cases
+        //int SHUTTERSTATUS_CHECK_INTERVAL_REDUCED = 2;//how often to chech true shutter status (in seconds) when shutter is moving
 
         //error message
         private string ERROR_MESSAGE = "";
@@ -125,7 +124,7 @@ namespace ASCOM.IP9212_rolloffroof3
         /// <summary>
         /// Private variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
         /// </summary>
-        private TraceLogger tl;
+        internal TraceLogger tl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IP9212_rolloffroof2"/> class.
@@ -134,13 +133,12 @@ namespace ASCOM.IP9212_rolloffroof3
         public Dome()
         {
             #if DEBUG
-            
-            #endif
             tl = new TraceLogger("", "IP9212_rolloffroof2");
             tl.Enabled = true; //at least for debugging - log will be always created no matter the value of traceState
             tl.LogMessage("Dome", "Starting initialisation");
+            #endif
 
-            Hardware = new IP9212_switch_class();
+            Hardware = new IP9212_switch_class(this);
 
             ReadProfile(); // Read device configuration from the ASCOM Profile store
 
@@ -178,7 +176,7 @@ namespace ASCOM.IP9212_rolloffroof3
             }
             else
             {
-                using (IP9212_switch.SetupDialog F = new SetupDialog(externalCallType.domeCall,this))
+                using (SetupDialogForm F = new SetupDialogForm(this,Hardware))
                 {
                     var result = F.ShowDialog();
                     if (result == System.Windows.Forms.DialogResult.OK)
@@ -211,28 +209,32 @@ namespace ASCOM.IP9212_rolloffroof3
             // Get device IP address
             if (actionName == "IPAddress")
             {
-                return ip_addr;
+                return IP9212_switch_class.ip_addr;
             }
             // Get cache settings
             else if (actionName == "GetCacheParameter")
             {
                 if (actionParameters == "CacheCheckConnection")
                 {
-                    return ConnectCheck_Cache_Timeout.ToString();
+                    return IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL.ToString();
                 }
                 else if (actionParameters == "CacheSensorState")
                 {
-                    return OutputRead_Cache_Timeout.ToString();
+                    return IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL.ToString();
+                }
+                else if (actionParameters == "CacheSensorState_reduced")
+                {
+                    return IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED.ToString();
                 }
                 else
                 {
                     return "";
                 }
             }
-            // Get cache settings
+            // Get web timeout settings
             else if (actionName == "GetTimeout")
             {
-                return MyWebClient.Timeout.ToString();
+                return MyWebClient.NETWORK_TIMEOUT.ToString();
             }
             else
             {
@@ -295,7 +297,7 @@ namespace ASCOM.IP9212_rolloffroof3
             }
             set
             {
-                tl.LogMessage("Connected(Set)", "Enter. Param: "+value.ToString());
+                tl.LogMessage("Connected(Set)", "Enter. Should set connected = "+value.ToString());
 
                 //Special case for MaximDL - finish with exception to display message
                 if (!value && (ERROR_MESSAGE != "" || Hardware.ASCOM_ERROR_MESSAGE != ""))
@@ -305,9 +307,23 @@ namespace ASCOM.IP9212_rolloffroof3
                     throw new ASCOM.DriverException(ERROR_MESSAGE);
                 }
 
-                
-                if (value == IsConnected(true))
+                tl.LogMessage("Connected(Set)", "Check current connection status");
+                bool curState = IsConnected(true);
+
+                if (value && curState)
+                {
+                    tl.LogMessage("Connected(Set)", "Exit. Already connected");
                     return;
+                }
+                else if (!value && !curState)
+                {
+                    tl.LogMessage("Connected(Set)", "Exit. Already disconnected");
+                    return;
+                }
+                else
+                {
+                    tl.LogMessage("Connected(Set)", "Connection status different, proceeding further");
+                }
 
                 if (value)
                 {
@@ -597,56 +613,22 @@ namespace ASCOM.IP9212_rolloffroof3
                     // shutterClosing 3 Dome shutter status closing  
                     // shutterError 4 Dome shutter status error  
                 
-                //if shutter in moving state - reduce check interval
-                int checkInterval=0;
-                if ((!Hardware.opened_shutter_flag && !Hardware.closed_shutter_flag))
-                {
-                    checkInterval=SHUTTERSTATUS_CHECK_INTERVAL_REDUCED;
-                    tl.LogMessage("ShutterStatus", "Shutter in medium position, using reduced caching interval (" + SHUTTERSTATUS_CHECK_INTERVAL_REDUCED+")");
-                }
-                else
-                {
-                    checkInterval=SHUTTERSTATUS_CHECK_INTERVAL_NORMAL;
-                    tl.LogMessage("ShutterStatus", "Using normal caching interval (" + SHUTTERSTATUS_CHECK_INTERVAL_NORMAL + ")");
-                }
 
                 //Check if connected
+                tl.LogMessage("ShutterStatus", "Check if device connected");
                 if (! IsConnected())
                 {
                     tl.LogMessage("ShutterStatus", "ERROR. Can't return shutter status because not connected");
                     ERROR_MESSAGE = "Can't return shutter status because device is not connected";
                     throw new ASCOM.DriverException(ERROR_MESSAGE);
-
                 }
 
-                //// READ CURRENT INPUT STATE IF IT WASN'T READ YET
-                //if (Hardware.input_state_arr[0] <= 0)
-                //{
-                //    tl.LogMessage("ShutterStatus", "Unidentified input status array, re-reading states");
-                //    Hardware.getInputStatus();
-                //}
+               
+                // Read input status
+                Hardware.opened_shutter_flag=Hardware.OpenedSensorState();
+                Hardware.closed_shutter_flag=Hardware.ClosedSensorState();
 
-                
-                //Measure how much time have passed since last HARDWARE measure
-                TimeSpan passed = DateTime.Now - Hardware.lastShutterStatusCheck;
-
-                if (passed.TotalSeconds > checkInterval)
-                {
-                    tl.LogMessage("ShutterStatus", "Cache expired [" + passed.TotalSeconds + " sec passed], rereading sensor status");
-                    // Read input status
-                    Hardware.getInputStatus();
-
-                    // Read input status
-                    Hardware.opened_shutter_flag=Hardware.OpenedSensorState();
-                    Hardware.closed_shutter_flag=Hardware.ClosedSensorState();
-
-                    lastShutterStatusCheck = DateTime.Now;
-                }
-                else
-                {
-                    tl.LogMessage("ShutterStatus", "Using cached inputsensor values [" + passed.TotalSeconds + " sec passed]");
-                }
-
+                //Calculate shutter status
                 retShutterSatus = ShutterState.shutterError;
 
                 if (!Hardware.opened_shutter_flag && !Hardware.closed_shutter_flag)
@@ -676,25 +658,11 @@ namespace ASCOM.IP9212_rolloffroof3
                     prev_shutter_state = ShutterState.shutterClosed;
                 }
 
+
                 tl.LogMessage("ShutterStatus", "Exit, shutter status: " + retShutterSatus.ToString());
                 return retShutterSatus;
             }
             
-            
-            //get
-            //{
-            //    tl.LogMessage("ShutterStatus Get", "Enter");
-            //    if (domeShutterState)
-            //    {
-            //        tl.LogMessage("ShutterStatus", ShutterState.shutterOpen.ToString());
-            //        return ShutterState.shutterOpen;
-            //    }
-            //    else
-            //    {
-            //        tl.LogMessage("ShutterStatus", ShutterState.shutterClosed.ToString());
-            //        return ShutterState.shutterClosed;
-            //    }
-            //}
         }
 
         public bool Slaved
@@ -851,15 +819,176 @@ namespace ASCOM.IP9212_rolloffroof3
         {
             tl.LogMessage("ReadProfile", "Enter");
 
-            Hardware.readSettings(); 
 
-            using (Profile driverProfile = new Profile())
+            using (Profile p = new Profile())
             {
-                driverProfile.DeviceType = "Dome";
-                traceState = Convert.ToBoolean(driverProfile.GetValue(driverID, traceStateProfileName, string.Empty, traceStateDefault));
+                p.DeviceType = "Dome";
+
+                //General settings
+                #region Device settings
+               
+                try
+                {
+                    IP9212_switch_class.ip_addr = p.GetValue(driverID, IP9212_switch_class.ip_addr_profilename, string.Empty, IP9212_switch_class.ip_addr_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_addr_profilename, ip_addr_default);
+                    IP9212_switch_class.ip_addr = IP9212_switch_class.ip_addr_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_addr]: [" + e.Message + "]");
+                }
+                try
+                {
+                    IP9212_switch_class.ip_port = p.GetValue(driverID, IP9212_switch_class.ip_port_profilename, string.Empty, IP9212_switch_class.ip_port_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_port_profilename, ip_port_default);
+                    IP9212_switch_class.ip_port = IP9212_switch_class.ip_port_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_port]: [" + e.Message + "]");
+                }
+                try
+                {
+                    IP9212_switch_class.ip_login = p.GetValue(driverID, IP9212_switch_class.ip_login_profilename, string.Empty, IP9212_switch_class.ip_login_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_login_profilename, ip_login_default);
+                    IP9212_switch_class.ip_login = IP9212_switch_class.ip_login_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_login]: [" + e.Message + "]");
+                }
+
+                try
+                {
+                    IP9212_switch_class.ip_pass = p.GetValue(driverID, IP9212_switch_class.ip_pass_profilename, string.Empty, IP9212_switch_class.ip_pass_default);
+                }
+                catch (Exception e)
+                {
+                    //p.WriteValue(driverID, ip_pass_profilename, ip_pass_default);
+                    IP9212_switch_class.ip_pass = IP9212_switch_class.ip_pass_default;
+                    tl.LogMessage("readSettings", "Wrong input string for [ip_pass]: [" + e.Message + "]");
+                }
+                #endregion
+
+
+                //Base settings
+                #region Base settings
+                try
+                {
+                    IP9212_switch_class.switch_roof_port = Convert.ToInt16(p.GetValue(driverID, IP9212_switch_class.switch_port_profilename, string.Empty, IP9212_switch_class.switch_port_default));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.switch_roof_port = Convert.ToInt16(IP9212_switch_class.switch_port_default);
+                    tl.LogMessage("readProfile", "Input string [switch_roof_port] is not a sequence of digits [" + e.Message + "]");
+                }
+
+                try
+                {
+                    IP9212_switch_class.opened_sensor_port = Convert.ToInt16(p.GetValue(driverID, IP9212_switch_class.opened_port_profilename, string.Empty, IP9212_switch_class.opened_port_default));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.opened_sensor_port = Convert.ToInt16(IP9212_switch_class.opened_port_default);
+                    tl.LogMessage("readProfile", "Input string [opened_sensor_port] is not a sequence of digits [" + e.Message + "]");
+                }
+                try
+                {
+                    IP9212_switch_class.closed_sensor_port = Convert.ToInt16(p.GetValue(driverID, IP9212_switch_class.closed_port_profilename, string.Empty, IP9212_switch_class.closed_port_default));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.closed_sensor_port = Convert.ToInt16(IP9212_switch_class.closed_port_default);
+                    tl.LogMessage("readProfile", "Input string [closed_sensor_port] is not a sequence of digits [" + e.Message + "]");
+                }
+
+                try
+                {
+                    IP9212_switch_class.switch_port_state_type = Convert.ToBoolean(p.GetValue(driverID, IP9212_switch_class.switch_port_state_type_profilename, string.Empty, IP9212_switch_class.switch_port_state_type_default));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.switch_port_state_type = Convert.ToBoolean(IP9212_switch_class.switch_port_state_type_default);
+                    tl.LogMessage("readProfile", "Input string [switch_port_state_type] is not a boolean value [" + e.Message + "]");
+                }
+                try
+                {
+                    IP9212_switch_class.opened_port_state_type = Convert.ToBoolean(p.GetValue(driverID, IP9212_switch_class.opened_port_state_type_profilename, string.Empty, IP9212_switch_class.opened_port_state_type_default));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.opened_port_state_type = Convert.ToBoolean(IP9212_switch_class.opened_port_state_type_default);
+                    tl.LogMessage("readProfile", "Input string [opened_port_state_type] is not a boolean value [" + e.Message + "]");
+                }
+                try
+                {
+                    IP9212_switch_class.closed_port_state_type = Convert.ToBoolean(p.GetValue(driverID, IP9212_switch_class.closed_port_state_type_profilename, string.Empty, IP9212_switch_class.closed_port_state_type_default));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.closed_port_state_type = Convert.ToBoolean(IP9212_switch_class.closed_port_state_type_default);
+                    tl.LogMessage("readProfile", "Input string [closed_port_state_type] is not a boolean value [" + e.Message + "]");
+                }
+                #endregion
+
+                //Advanced settings
+                #region Advanced settings
+
+                try
+                {
+                    MyWebClient.NETWORK_TIMEOUT = Convert.ToInt16(p.GetValue(driverID, MyWebClient.NETWORK_TIMEOUT_profilename, string.Empty, MyWebClient.NETWORK_TIMEOUT_default.ToString()));
+                }
+                catch (Exception e)
+                {
+                    MyWebClient.NETWORK_TIMEOUT = MyWebClient.NETWORK_TIMEOUT_default;
+                    tl.LogMessage("readProfile", "Input string [NETWORK_TIMEOUT] is not a sequence of digits [" + e.Message + "]");
+                }
+                IP9212_switch_class.Semaphore_timeout = MyWebClient.NETWORK_TIMEOUT+ IP9212_switch_class.Semaphore_timeout_extratime; //+1 sec
+                try
+                {
+                    IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL = Convert.ToUInt32(p.GetValue(driverID, IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL_profilename, string.Empty, IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL_default.ToString()));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL = IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL_default;
+                    tl.LogMessage("readProfile", "Input string [CACHE_CHECKCONNECTED_INTERVAL] is not a sequence of digits [" + e.Message + "]");
+                }
+                try
+                {
+                    IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL = Convert.ToUInt32(p.GetValue(driverID, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL_profilename, string.Empty, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL_default.ToString()));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL = IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL_default;
+                    tl.LogMessage("readProfile", "Input string [CACHE_SHUTTERSTATUS_INTERVAL_NORMAL] is not a sequence of digits [" + e.Message + "]");
+                }
+                try
+                {
+                    IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED = Convert.ToUInt32(p.GetValue(driverID, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED_profilename, string.Empty, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED_default.ToString()));
+                }
+                catch (Exception e)
+                {
+                    IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED = IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED_default;
+                    tl.LogMessage("readProfile", "Input string [CACHE_SHUTTERSTATUS_INTERVAL_REDUCED] is not a sequence of digits [" + e.Message + "]");
+                }
+
+
+                try
+                {
+                    traceState = Convert.ToBoolean(p.GetValue(driverID, traceStateProfileName, string.Empty, traceStateDefault));
+                }
+                catch (Exception e)
+                {
+                    traceState = Convert.ToBoolean(traceStateDefault);
+                    tl.LogMessage("readProfile", "Input string [traceState] is not a boolean value [" + e.Message + "]");
+                }
+                #endregion
+
             }
 
             tl.LogMessage("ReadProfile", "Exit");
+
+
         }
 
         /// <summary>
@@ -869,13 +998,29 @@ namespace ASCOM.IP9212_rolloffroof3
         {
             tl.LogMessage("WriteProfile", "Enter");
             
-            Hardware.writeSettings();
-            
             using (Profile driverProfile = new Profile())
             {
                 driverProfile.DeviceType = "Dome";
                 driverProfile.WriteValue(driverID, traceStateProfileName, traceState.ToString());
+
+                driverProfile.WriteValue(driverID, IP9212_switch_class.ip_addr_profilename, IP9212_switch_class.ip_addr);
+                driverProfile.WriteValue(driverID, IP9212_switch_class.ip_port_profilename, IP9212_switch_class.ip_port);
+                driverProfile.WriteValue(driverID, IP9212_switch_class.ip_login_profilename, IP9212_switch_class.ip_login);
+                driverProfile.WriteValue(driverID, IP9212_switch_class.ip_pass_profilename, IP9212_switch_class.ip_pass);
+
+                driverProfile.WriteValue(driverID, IP9212_switch_class.switch_port_profilename, IP9212_switch_class.switch_roof_port.ToString());
+                driverProfile.WriteValue(driverID, IP9212_switch_class.opened_port_profilename, IP9212_switch_class.opened_sensor_port.ToString());
+                driverProfile.WriteValue(driverID, IP9212_switch_class.closed_port_profilename, IP9212_switch_class.closed_sensor_port.ToString());
+
+
+                driverProfile.WriteValue(driverID, MyWebClient.NETWORK_TIMEOUT_profilename, MyWebClient.NETWORK_TIMEOUT.ToString());
+                driverProfile.WriteValue(driverID, IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL_profilename, IP9212_switch_class.CACHE_CHECKCONNECTED_INTERVAL.ToString());
+                driverProfile.WriteValue(driverID, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL_profilename, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL.ToString());
+                driverProfile.WriteValue(driverID, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED_profilename, IP9212_switch_class.CACHE_SHUTTERSTATUS_INTERVAL_REDUCED.ToString());
             }
+            tl.LogMessage("Switch_writeSettings", "Exit");
+
+
 
             tl.LogMessage("WriteProfile", "Exit");
         }

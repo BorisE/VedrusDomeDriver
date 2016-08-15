@@ -23,7 +23,7 @@ namespace IP9212_emul
                 //start listing on the given port
                 myListener = new TcpListener(port);
                 myListener.Start();
-                Console.WriteLine("Web Server Running... Press ^C to Stop...");
+                Console.WriteLine("Web Server Running [port "+ port + "]... Press ^C to Stop...");
 
                 //start the thread which calls the method 'StartListen'
                 Thread th = new Thread(new ThreadStart(StartListen));
@@ -144,12 +144,12 @@ namespace IP9212_emul
 
 
                     //If The file name is not supplied then look in the default file list
-                    if (sRequestedFile!="set.cmd")
+                    if (sRequestedFile.ToLower()!="set.cmd")
                     {
                         sErrorMessage = "<H2>404 Error! File [" + sDirName + "/" + sRequestedFile + "] Does Not Exists...</H2>";
                         SendHeader(sHttpVersion, "", sErrorMessage.Length, " 404 Not Found", ref mySocket);
                         SendToBrowser(sErrorMessage, ref mySocket);
-                        Console.WriteLine(sFormattedMessage);
+                        Console.WriteLine(sErrorMessage);
 
                         mySocket.Close();
                         continue;
@@ -160,7 +160,7 @@ namespace IP9212_emul
 
                         //Parser parameter string 
                         // (should be called 1st)
-                        Hardware.ParseParameters(sGetStr);
+                        Hardware.ParseGetString(sGetStr);
 
                         if (Hardware.debugf)
                         {
@@ -171,7 +171,7 @@ namespace IP9212_emul
 
                         //Parse commmands
                         //should be called 2nd
-                        string output=Hardware.ParseCommand();
+                        string output=Hardware.ParseCMDParameters();
 
                         //Now output results
                         if (Hardware.debugf)
@@ -191,7 +191,7 @@ namespace IP9212_emul
                         SendHeader(sHttpVersion, sMimeType, sResponse.Length, " 200 OK", ref mySocket);
                         SendToBrowser(sResponse, ref mySocket);
 
-                        Console.WriteLine("Response : " + sResponse);
+                        Console.WriteLine(DateTime.Now.ToString("HH:mm:ss.f")+" : response : " + sResponse);
 
                         //mySocket.Send(bytes, bytes.Length,0);
 

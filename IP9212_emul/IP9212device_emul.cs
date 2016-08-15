@@ -27,7 +27,7 @@ namespace IP9212_emul
 
         public const string SWITCH_PORT = "5";
         public const string OPENED_PORT = "6";
-        public const string CLOSED_PORT = "7";
+        public const string CLOSED_PORT = "5";
 
         DateTime RoofMoving_start;
         ShutterStatus RoofStatus = ShutterStatus.shutterError;
@@ -44,10 +44,10 @@ namespace IP9212_emul
         public IP9212device_emul()
         {
             //init device
-            InputState.Add("1", 1);
-            InputState.Add("2", 1);
-            InputState.Add("3", 1);
-            InputState.Add("4", 1);
+            InputState.Add("1", 0);
+            InputState.Add("2", 0);
+            InputState.Add("3", 0);
+            InputState.Add("4", 0);
             InputState.Add("5", 1);
             InputState.Add("6", 1);
             InputState.Add("7", 1);
@@ -63,15 +63,33 @@ namespace IP9212_emul
             OutputState.Add("8", 1);
 
 
-            InputState[OPENED_PORT] = 0;
-            InputState[CLOSED_PORT] = 1;
+            InputState[OPENED_PORT] = 1; //inverse logic
+            InputState[CLOSED_PORT] = 0; //inverse logic
             RoofStatus = ShutterStatus.shutterClosed;
 
             RoofMoving_start = DateTime.MinValue;
 
         }
 
-        public void ParseParameters(string ParamStr)
+
+/*
+Opened (but close sensor is broken :(
+http://192.168.1.90/set.cmd?cmd=getio
+<html><head></head><body>P51=0,P52=0,P53=0,P54=0,P55=1,P56=0,P57=1,P58=1
+HTTP/1.0 200 OK
+Connection: close
+
+</body></html>
+*/
+
+/*
+http://192.168.1.90/set.cmd?cmd=getpower
+<html>P61=0,P62=0,P63=0,P64=0,P65=1,P66=1,P67=1,P68=1</html>
+HTTP/1.0 200 OK
+Connection: close
+*/
+
+        public void ParseGetString(string ParamStr)
         {
             //Set.cmd?user=usename+pass=passwordCMD=command
 
@@ -103,7 +121,7 @@ namespace IP9212_emul
 
 
             //Get PASSWORD for case 2
-            iStartPos = ParamStr.IndexOf("pass=") + 5;
+            iStartPos = ParamStr.IndexOf("pass=");
             iEndPos = ParamStr.IndexOf("cmd=");
             iEndPos = (iEndPos < 0 ? ParamStr.Length : iEndPos);
 
@@ -113,7 +131,7 @@ namespace IP9212_emul
             }
             else
             {
-                pass = ParamStr.Substring(iStartPos, iEndPos - iStartPos);
+                pass = ParamStr.Substring(iStartPos + 5, iEndPos - iStartPos-5);
             }
 
             //Parse COMMAND
@@ -130,7 +148,7 @@ namespace IP9212_emul
             CheckCommandFlags();
         }
 
-        public string ParseCommand()
+        public string ParseCMDParameters()
         {
             //emulation check
             RoofBehaviorEmulation_Check();
@@ -192,7 +210,7 @@ namespace IP9212_emul
         {
             //set.cmd?cmd=setpower+P61=1
 
-            int iStartPos = cmd.IndexOf("+P6")+3;
+            int iStartPos = cmd.IndexOf("+p6")+3;
             int iEndPos = cmd.IndexOf("=");
             iEndPos = (iEndPos < 0 ? cmd.Length : iEndPos);
 
@@ -220,16 +238,16 @@ namespace IP9212_emul
 
                 RoofMoving_start = DateTime.Now;
                 RoofStatus = ShutterStatus.shutterOpening;
-                InputState[CLOSED_PORT] = 0;
-                InputState[OPENED_PORT] = 0;
+                InputState[CLOSED_PORT] = 1;
+                InputState[OPENED_PORT] = 1;
             }
             else if (RoofStatus == ShutterStatus.shutterOpen)
             {
                 //roof was opened
                 RoofMoving_start = DateTime.Now;
                 RoofStatus = ShutterStatus.shutterClosing;
-                InputState[OPENED_PORT] = 0;
-                InputState[CLOSED_PORT] = 0;
+                InputState[OPENED_PORT] = 1;
+                InputState[CLOSED_PORT] = 1;
             }
         }
 
@@ -251,15 +269,15 @@ namespace IP9212_emul
                     if (RoofStatus == ShutterStatus.shutterOpening)
                     {
                         RoofStatus = ShutterStatus.shutterOpen;
-                        InputState[CLOSED_PORT] = 0;
-                        InputState[OPENED_PORT] = 1;
+                        InputState[CLOSED_PORT] = 1; //inverse logic
+                        InputState[OPENED_PORT] = 0; //inverse logic
                     }
 
                     if (RoofStatus == ShutterStatus.shutterClosing)
                     {
                         RoofStatus = ShutterStatus.shutterClosed;
-                        InputState[CLOSED_PORT] = 1;
-                        InputState[OPENED_PORT] = 0;
+                        InputState[CLOSED_PORT] = 0; //inverse logic
+                        InputState[OPENED_PORT] = 1; //inverse logic
                     }
 
 

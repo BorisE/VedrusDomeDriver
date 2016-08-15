@@ -12,16 +12,18 @@ using ASCOM;
 using ASCOM.Utilities;
 using ASCOM.DeviceInterface;
 
-namespace IP9212_switch
+namespace ASCOM.IP9212_rolloffroof3
 {
     public class MyWebClient : WebClient
     {
-        static public int Timeout = 5 * 1000;
+        public const int NETWORK_TIMEOUT_default = 5 * 1000;
+        static public int NETWORK_TIMEOUT = NETWORK_TIMEOUT_default;
+        internal static string NETWORK_TIMEOUT_profilename = "NetworkTimeout";
 
         protected override WebRequest GetWebRequest(Uri uri)
         {
             WebRequest w = base.GetWebRequest(uri);
-            w.Timeout = Timeout;
+            w.Timeout = NETWORK_TIMEOUT;
             return w;
         }
     }
@@ -31,6 +33,8 @@ namespace IP9212_switch
     /// </summary>
     public class IP9212_switch_class
     {
+        Dome DomeDriverLnk;
+
         internal bool debugFlag = false;
 
         public static string IP9212_switch_id = "IP9212_switch";
@@ -50,7 +54,23 @@ namespace IP9212_switch
         internal static bool switch_port_state_type, opened_port_state_type, closed_port_state_type;
         internal static string switch_port_state_type_profilename = "Roof switch port state type", opened_port_state_type_profilename = "Roof opened state port state type", closed_port_state_type_profilename = "Roof closed state port state type";
         internal static string switch_port_state_type_default = "true", opened_port_state_type_default = "false", closed_port_state_type_default = "false";
+        #endregion Settings variables
 
+        #region Advanced settings
+
+        //public static string ip_addr, ip_port, ip_login, ip_pass;
+
+        internal static bool traceState;
+        internal static string traceStateProfileName = "Trace Level";
+        internal static string traceStateDefault = "true";
+
+        public static string currentLang= "ru-RU";
+        internal static string currentLocalizationProfileName = "Current language";
+        internal static string currentLangDefault = "ru-RU";
+
+        #endregion
+
+        #region Obsolete parameters
         internal static int telescope_power_port, focuser_power_port, heating_port, roofpower_port;
         internal static string telescope_power_port_profilename = "Telescope power port", focuser_power_port_profilename = "Focuser power port", heating_port_profilename = "Heating port state type", roof_power_port_profilename = "Roof power port";
         internal static string telescope_power_port_default = "6", focuser_power_port_default = "8", heating_port_default = "7", roof_power_port_default = "3";
@@ -58,12 +78,7 @@ namespace IP9212_switch
         internal static bool telescope_power_port_state_type, focuser_power_port_state_type, heating_port_state_type, roofpower_port_state_type;
         internal static string telescope_power_port_state_type_profilename = "Telescope power port state type", focuser_power_port_state_type_profilename = "Focuser power port state type", heating_port_state_type_profilename = "Heating port state type", roof_power_port_state_type_profilename = "Roof power port state type";
         internal static string telescope_power_port_state_type_default = "true", focuser_power_port_state_type_default = "true", heating_port_state_type_default = "true", roof_power_port_state_type_default = "false";
-
-        internal static bool traceState;
-        internal static string traceStateProfileName = "Trace Level";
-        internal static string traceStateDefault = "true";
-        #endregion Settings variables
-
+        #endregion
 
         /// <summary>
         /// input sensors state
@@ -87,6 +102,8 @@ namespace IP9212_switch
         /// Semaphor for blocking concurrent requests
         /// </summary>
         public static Semaphore IP9212Semaphore;
+        public static Int32 Semaphore_timeout = 2000; //millisec
+        internal static readonly int Semaphore_timeout_extratime = 2000; //2 sec to NetworkTimeout
 
         /// <summary>
         /// error message (on hardware level) - don't forget, that there is another one on driver level
@@ -100,7 +117,10 @@ namespace IP9212_switch
         //Caching connection check
         public static DateTime EXPIRED_CACHE = new DateTime(2010, 05, 12, 13, 15, 00); //CONSTANT FOR MARKING AN OLD TIME
         private DateTime lastConnectedCheck = EXPIRED_CACHE; //when was the last hardware checking provided for connect state
-        int CONNECTED_CHECK_INTERVAL = 10; //how often to held hardware checking (in seconds)
+
+        public const uint CACHE_CHECKCONNECTED_INTERVAL_default = 10;
+        public static uint CACHE_CHECKCONNECTED_INTERVAL = CACHE_CHECKCONNECTED_INTERVAL_default; //how often to held hardware checking (in seconds)
+        internal static string CACHE_CHECKCONNECTED_INTERVAL_profilename = "CACHE_CHECKCONNECTED_INTERVAL";
 
         //Previos shutter states
         private ShutterState prev_shutter_state;
@@ -109,21 +129,28 @@ namespace IP9212_switch
 
         //Caching last shutter status
         public DateTime lastShutterStatusCheck = EXPIRED_CACHE; //when was the last hardware checking provided for shutter state 
-        int SHUTTERSTATUS_CHECK_INTERVAL_NORMAL = 10; //how often to chech true shutter status (in seconds) for regular cases
-        int SHUTTERSTATUS_CHECK_INTERVAL_REDUCED = 2;//how often to chech true shutter status (in seconds) when shutter is moving
+
+        //how often to check true shutter status (in seconds) for regular cases
+        public const uint CACHE_SHUTTERSTATUS_INTERVAL_NORMAL_default = 10;
+        public static uint CACHE_SHUTTERSTATUS_INTERVAL_NORMAL = CACHE_SHUTTERSTATUS_INTERVAL_NORMAL_default;
+        //how often to check true shutter status (in seconds) when shutter is moving
+        public const uint CACHE_SHUTTERSTATUS_INTERVAL_REDUCED_default = 2;
+        public static uint CACHE_SHUTTERSTATUS_INTERVAL_REDUCED = CACHE_SHUTTERSTATUS_INTERVAL_REDUCED_default;
+        internal static string CACHE_SHUTTERSTATUS_INTERVAL_NORMAL_profilename = "CACHE_SHUTTERSTATUS_INTERVAL_NORMAL", CACHE_SHUTTERSTATUS_INTERVAL_REDUCED_profilename = "CACHE_SHUTTERSTATUS_INTERVAL_REDUCED";
 
         /// <summary>
         /// Constructor of IP9212_switch_class
         /// </summary>
-        public IP9212_switch_class()
+        public IP9212_switch_class(Dome DomeDriver_ext)
         {
-            tl = new TraceLogger("", "IP9212_Switch");
-            tl.Enabled = true; //default value before reading settings
+            DomeDriverLnk = DomeDriver_ext;
 
-            RegisterSettings();
-            readSettings();
+            tl = DomeDriverLnk.tl; //the same logger with Dome Driver
 
-            tl.Enabled = traceState; //now we can set trace state, specified by user
+            //tl.Enabled = true; //default value before reading settings
+
+            //RegisterSettings();
+            //readSettings();
             tl.LogMessage("Switch_constructor", "Starting initialisation");
 
             hardware_connected_flag = false;
@@ -139,7 +166,7 @@ namespace IP9212_switch
             tl.LogMessage("Switch_Connect", "Enter");
 
             // Get the ip9212 settings from the profile and cache them in appropriate fields
-            readSettings();
+            //readSettings();
 
             //reset cache
             lastConnectedCheck = EXPIRED_CACHE;
@@ -174,7 +201,7 @@ namespace IP9212_switch
             tl.LogMessage("Switch_Disconnect", "Enter");
 
             // Get the ip9212 settings from the profile and cache them in appropriate fields
-            readSettings();
+            //readSettings();
 
             //reset cache
             lastConnectedCheck = EXPIRED_CACHE;
@@ -211,7 +238,7 @@ namespace IP9212_switch
             //Usual mode
             //Measure how much time have passed since last HARDWARE measure
             TimeSpan passed = DateTime.Now - lastConnectedCheck;
-            if (passed.TotalSeconds > CONNECTED_CHECK_INTERVAL)
+            if (passed.TotalSeconds > CACHE_CHECKCONNECTED_INTERVAL)
             {
                 // check that the driver hardware connection exists and is connected to the hardware
                 tl.LogMessage("Switch_IsConnected", "Starting read hardware values thread [in cache: " + passed.TotalSeconds + "s]...");
@@ -239,13 +266,13 @@ namespace IP9212_switch
         /// <returns>Nothing</returns> 
         public void checkLink_async()
         {
-            tl.LogMessage("CheckLink_async", "enter");
+            tl.LogMessage("Switch_CheckLink_async", "enter");
 
             //Check - address was specified?
             if (string.IsNullOrEmpty(ip_addr))
             {
                 hardware_connected_flag = false;
-                tl.LogMessage("CheckLink_async", "ERROR (ip_addr wasn't set)!");
+                tl.LogMessage("Switch_CheckLink_async", "ERROR (ip_addr wasn't set)!");
                 // report a problem with the port name
                 //throw new ASCOM.DriverException("checkLink_async error");
                 return;
@@ -261,29 +288,29 @@ namespace IP9212_switch
                 siteipURL = "http://localhost/ip9212/getio.php";
             }
             Uri uri_siteipURL = new Uri(siteipURL);
-            tl.LogMessage("CheckLink_async", "download url:" + siteipURL);
+            tl.LogMessage("Switch_CheckLink_async", "download url:" + siteipURL);
 
             // Send http query
             MyWebClient client = new MyWebClient();
             try
             {
-                tl.LogMessage("Semaphore", "WaitOne");
-                IP9212Semaphore.WaitOne(); // lock working with IP9212
+                tl.LogMessage(">Semaphore", "WaitOne");
+                IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
 
                 client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(checkLink_DownloadCompleted);
 
                 client.DownloadDataAsync(uri_siteipURL);
 
-                tl.LogMessage("CheckLink_async", "http request was sent");
+                tl.LogMessage("Switch_CheckLink_async", "http request was sent");
             }
             catch (WebException e)
             {
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
                 IP9212Semaphore.Release();//unlock ip9212 device for others
                 hardware_connected_flag = false;
-                tl.LogMessage("CheckLink_async", "error:" + e.Message);
+                tl.LogMessage("Switch_CheckLink_async", "error:" + e.Message);
                 //throw new ASCOM.NotConnectedException("Couldn't reach network server");
-                tl.LogMessage("CheckLink_async", "exit on web error");
+                tl.LogMessage("Switch_CheckLink_async", "exit on web error");
             }
         }
 
@@ -291,38 +318,46 @@ namespace IP9212_switch
         {
             try
             {
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
             }
             catch { 
             // Object was disposed before download complete, so we should release all and exit
                 return;
             }
             IP9212Semaphore.Release();//unlock ip9212 device for others
-            tl.LogMessage("checkLink_DownloadCompleted", "http request was processed");
+            tl.LogMessage("Switch_checkLink_DownloadCompleted", "http request was processed");
             if (e.Error != null)
             {
                 hardware_connected_flag = false;
-                tl.LogMessage("checkLink_DownloadCompleted", "error: " + e.Error.Message);
+                tl.LogMessage("Switch_checkLink_DownloadCompleted", "error: " + e.Error.Message);
                 return;
             }
 
             if (e.Result != null && e.Result.Length > 0)
             {
                 string downloadedData = Encoding.Default.GetString(e.Result);
+
+
                 if (downloadedData.IndexOf("P5") >= 0)
                 {
                     hardware_connected_flag = true;
-                    tl.LogMessage("checkLink_DownloadCompleted", "ok");
+                    tl.LogMessage("Switch_checkLink_DownloadCompleted", "Downloaded data is ok");
+                    lastConnectedCheck = DateTime.Now;
+                    lastShutterStatusCheck = DateTime.Now;
+
+                    //Parse input data just in case - it will be usefull
+                    parseInputData(downloadedData);
                 }
                 else
                 {
                     hardware_connected_flag = false;
-                    tl.LogMessage("checkLink_DownloadCompleted", "string not found");
+                    tl.LogMessage("Switch_checkLink_DownloadCompleted", "Downloaded data error - string not found");
                 }
+
             }
             else
             {
-                tl.LogMessage("checkLink_DownloadCompleted", "bad result");
+                tl.LogMessage("Switch_checkLink_DownloadCompleted", "bad result");
                 hardware_connected_flag = false;
             }
             return;
@@ -334,95 +369,37 @@ namespace IP9212_switch
         /// <returns>Aviability of IP server </returns> 
         public bool checkLink_forced()
         {
-            tl.LogMessage("checkLink_forced", "Enter");
+            tl.LogMessage("Switch_checkLink_forced", "Enter");
 
-            //Check - address was specified?
-            if (string.IsNullOrEmpty(ip_addr))
-            {
-                hardware_connected_flag = false;
-                tl.LogMessage("checkLink_forced", "ERROR (ip_addr wasn't set)!");
-                // report a problem with the port name
-                //throw new ASCOM.DriverException("checkLink_async error");
-                return hardware_connected_flag;
-            }
+            //Just call getInputStatus() method. It would check and also parse input data as a side bonus :)
+            getInputStatus();
 
-            string siteipURL;
-            siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
-            // new style
-            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
-
-            //FOR DEBUGGING
-            if (debugFlag)
-            {
-                siteipURL = "http://localhost/ip9212/getio.php";
-            }
-
-            Uri uri_siteipURL = new Uri(siteipURL);
-            tl.LogMessage("checkLink_forced", "Download url:" + siteipURL);
-
-            // Send http query
-            tl.LogMessage("Semaphore", "waitone");
-            IP9212Semaphore.WaitOne(); // lock working with IP9212
-
-            string s = "";
-            MyWebClient client = new MyWebClient();
-            try
-            {
-                Stream data = client.OpenRead(uri_siteipURL);
-                StreamReader reader = new StreamReader(data);
-                s = reader.ReadToEnd();
-                data.Close();
-                reader.Close();
-
-                tl.LogMessage("checkLink_forced", "Download str:" + s);
-                //wait
-                //Thread.Sleep(1000);
-
-                tl.LogMessage("Semaphore", "Release");
-                int ns = IP9212Semaphore.Release();//unlock ip9212 device for others
-                tl.LogMessage("Semaphore", "left count " + ns);
-
-                if (s.IndexOf("P5") >= 0)
-                {
-                    hardware_connected_flag = true;
-                    tl.LogMessage("checkLink_forced", "Downloaded data is ok");
-                }
-                else
-                {
-                    hardware_connected_flag = false;
-                    tl.LogMessage("checkLink_forced", "Downloaded data error - string not found");
-                }
-            }
-            catch (WebException e)
-            {
-                tl.LogMessage("Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
-                hardware_connected_flag = false;
-                tl.LogMessage("checkLink_forced", "Error" + e.Message);
-                //throw new ASCOM.NotConnectedException("Couldn't reach network server");
-                tl.LogMessage("checkLink_forced", "Exit by web error");
-            }
-            tl.LogMessage("checkLink_forced", "Exit, ret value " + hardware_connected_flag.ToString());
+            tl.LogMessage("Switch_checkLink_forced", "Exit. Returning status: " + hardware_connected_flag.ToString());
             return hardware_connected_flag;
         }
 
 
         /// <summary>
         /// Get input sensor status
+        /// Notes: 
+        /// 1. It is also base procedure to check if device is connected, so sync checklink call it (simply is a wrapper). But for async check it calls its own check
+        /// 2. Because this procedure returns also data for shutter status check, it caches it's result, so OpenedState() and ClosedState() would reacquire this data
         /// </summary>
         /// <returns>Returns int array [0..8] with status flags of each input sensor. arr[0] is for read status (-1 for error, 1 for good read, 0 for smth else)</returns> 
         public int[] getInputStatus()
         {
-            tl.LogMessage("getInputStatus", "Enter");
+            tl.LogMessage("Switch_getInputStatus", "Enter");
+
+            input_state_arr[0] = -1;
 
             if (string.IsNullOrEmpty(ip_addr))
             {
                 input_state_arr[0] = -1;
-                tl.LogMessage("getInputStatus", "ERROR (ip_addr wasn't set)!");
+                hardware_connected_flag = false;
+
+                tl.LogMessage("Switch_getInputStatus", "ERROR (ip_addr wasn't set)!");
                 // report a problem with the port name
-                ASCOM_ERROR_MESSAGE = "getInputStatus(): no IP address was specified";
-                throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
-                //return input_state_arr;
+                return input_state_arr;
             }
 
             string siteipURL;
@@ -435,11 +412,11 @@ namespace IP9212_switch
             {
                 siteipURL = "http://localhost/ip9212/getio.php";
             }
-            tl.LogMessage("getInputStatus", "Download url:" + siteipURL);
+            tl.LogMessage("Switch_getInputStatus", "Download url:" + siteipURL);
 
             // Send http query
-            tl.LogMessage("Semaphore", "waitone");
-            IP9212Semaphore.WaitOne(); // lock working with IP9212
+            tl.LogMessage(">Semaphore", "waitone");
+            IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
             string s = "";
             MyWebClient client = new MyWebClient();
             try
@@ -450,27 +427,53 @@ namespace IP9212_switch
                 data.Close();
                 reader.Close();
 
-                tl.LogMessage("getInputStatus", "Download str:" + s);
+                tl.LogMessage("Switch_getInputStatus", "Download str:" + s);
 
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
                 IP9212Semaphore.Release();//unlock ip9212 device for others
                 //wait
                 //Thread.Sleep(1000);
+
+                if (s.IndexOf("P5") >= 0)
+                {
+                    hardware_connected_flag = true;
+                    tl.LogMessage("Switch_getInputStatus", "Downloaded data is ok");
+                    lastConnectedCheck = DateTime.Now;
+                    lastShutterStatusCheck= DateTime.Now;
+
+                    //Parse input data just in case it will be usefull
+                    parseInputData(s);
+                }
+                else
+                {
+                    hardware_connected_flag = false;
+                    tl.LogMessage("Switch_getInputStatus", "Downloaded data error - string not found");
+                }
+
+
             }
             catch (WebException e)
             {
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
                 IP9212Semaphore.Release();//unlock ip9212 device for others
                 input_state_arr[0] = -1;
+                hardware_connected_flag = false;
 
-                tl.LogMessage("getInputStatus", "Error:" + e.Message);
-
-                ASCOM_ERROR_MESSAGE = "getInputStatus(): couldn't reach network server";
-                throw new ASCOM.NotConnectedException(ASCOM_ERROR_MESSAGE);
-                //Trace("> IP9212_harware.getInputStatus(): exit by web error ");
-                //return input_state_arr;
+                tl.LogMessage("Switch_getInputStatus", "Error:" + e.Message);
+                tl.LogMessage("Switch_getInputStatus", "Exit by web error");
             }
 
+            tl.LogMessage("Switch_getInputStatus", "Exit");
+            return input_state_arr;
+        }
+
+        /// <summary>
+        /// Parse input sensors string as retured by GETIO command
+        /// </summary>
+        /// <param name="s">string </param>
+        public int[] parseInputData(string s)
+        {
+            tl.LogMessage("Switch_parseInputData", "Enter");
             // Parse data
             try
             {
@@ -497,7 +500,7 @@ namespace IP9212_switch
                     if (data_arr.Length > 1)
                     {
                         input_state_arr[i] = Convert.ToInt16(data_arr[1]);
-                        Trace(input_state_arr[i]);
+                        //Trace(input_state_arr[i]);
                     }
                     else
                     {
@@ -505,16 +508,14 @@ namespace IP9212_switch
                     }
                 }
                 input_state_arr[0] = 1;
-                tl.LogMessage("getInputStatus", "Data was read");
+                tl.LogMessage("Switch_parseInputData", "Exit, data was parsed");
             }
             catch
             {
-                tl.LogMessage("getInputStatus", "ERROR (Exception)!");
+                tl.LogMessage("Switch_parseInputData", "ERROR (Exception)!");
                 input_state_arr[0] = -1;
-                tl.LogMessage("getInputStatus", "Exit by parse error");
-                return input_state_arr;
+                tl.LogMessage("Switch_parseInputData", "Exit, parse error");
             }
-            tl.LogMessage("getInputStatus", "Exit");
             return input_state_arr;
         }
 
@@ -524,7 +525,7 @@ namespace IP9212_switch
         /// <returns>Returns int array [0..8] with status flags of each realya status. arr[0] is for read status (-1 for error, 1 for good read, 0 for smth else)</returns> 
         public int[] getOutputStatus()
         {
-            tl.LogMessage("getOutputStatus", "Enter");
+            tl.LogMessage("Switch_getOutputStatus", "Enter");
 
             // get the ip9212 settings from the profile
             //readSettings();
@@ -535,7 +536,7 @@ namespace IP9212_switch
             if (string.IsNullOrEmpty(ip_addr))
             {
                 ipdata[0] = -1;
-                tl.LogMessage("getOutputStatus", "ERROR (ip_addr wasn't set)!");
+                tl.LogMessage("Switch_getOutputStatus", "ERROR (ip_addr wasn't set)!");
                 // report a problem with the port name
                 ASCOM_ERROR_MESSAGE = "getOutputStatus(): no IP address was specified";
                 throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
@@ -552,12 +553,12 @@ namespace IP9212_switch
             {
                 siteipURL = "http://localhost/ip9212/getpower.php";
             }
-            tl.LogMessage("getOutputStatus", "Download url:" + siteipURL);
+            tl.LogMessage("Switch_getOutputStatus", "Download url:" + siteipURL);
 
 
             // Send http query
-            tl.LogMessage("Semaphore", "waitone");
-            IP9212Semaphore.WaitOne(); // lock working with IP9212
+            tl.LogMessage(">Semaphore", "waitone");
+            IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
 
             string s = "";
             MyWebClient client = new MyWebClient();
@@ -569,9 +570,9 @@ namespace IP9212_switch
                 data.Close();
                 reader.Close();
 
-                tl.LogMessage("getOutputStatus", "Download str:" + s);
+                tl.LogMessage("Switch_getOutputStatus", "Download str:" + s);
 
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
                 IP9212Semaphore.Release();//unlock ip9212 device for others
                 //wait
                 //Thread.Sleep(1000);
@@ -579,14 +580,14 @@ namespace IP9212_switch
             }
             catch (WebException e)
             {
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
                 IP9212Semaphore.Release();//unlock ip9212 device for others
                 ipdata[0] = -1;
-                tl.LogMessage("getOutputStatus", "Error:" + e.Message);
+                tl.LogMessage("Switch_getOutputStatus", "Error:" + e.Message);
                 ASCOM_ERROR_MESSAGE = "getInputStatus(): Couldn't reach network server";
                 //throw new ASCOM.NotConnectedException(ASCOM_ERROR_MESSAGE);
-                Trace("> IP9212_harware.getOutputStatus(): exit by web error");
-                tl.LogMessage("getOutputStatus", "Exit by web error");
+                //Trace("> IP9212_harware.getOutputStatus(): exit by web error");
+                tl.LogMessage("Switch_getOutputStatus", "Exit by web error");
                 return ipdata;
             }
 
@@ -615,7 +616,7 @@ namespace IP9212_switch
                     if (data_arr.Length > 1)
                     {
                         ipdata[i] = Convert.ToInt16(data_arr[1]);
-                        Trace(ipdata[i]);
+                        //Trace(ipdata[i]);
                     }
                     else
                     {
@@ -623,13 +624,13 @@ namespace IP9212_switch
                     }
                 }
                 ipdata[0] = 1;
-                tl.LogMessage("getOutputStatus", "Data was read");
+                tl.LogMessage("Switch_getOutputStatus", "Data was read");
             }
             catch
             {
                 ipdata[0] = -1;
-                tl.LogMessage("getOutputStatus", "ERROR (Exception)!");
-                tl.LogMessage("getOutputStatus", "exit by parse error");
+                tl.LogMessage("Switch_getOutputStatus", "ERROR (Exception)!");
+                tl.LogMessage("Switch_getOutputStatus", "exit by parse error");
                 return ipdata;
             }
             return ipdata;
@@ -644,7 +645,7 @@ namespace IP9212_switch
         /// <returns>Returns true in case of success</returns> 
         public bool setOutputStatus(int PortNumber, int PortValue)
         {
-            tl.LogMessage("setOutputStatus", "Enter (" + PortNumber + "," + PortValue + ")");
+            tl.LogMessage("Switch_setOutputStatus", "Enter (" + PortNumber + "," + PortValue + ")");
 
             // get the ip9212 settings from the profile
             //readSettings();
@@ -654,9 +655,9 @@ namespace IP9212_switch
 
             if (string.IsNullOrEmpty(ip_addr))
             {
-                tl.LogMessage("setOutputStatus", "ERROR (ip_addr wasn't set)!");
+                tl.LogMessage("Switch_setOutputStatus", "ERROR (ip_addr wasn't set)!");
                 // report a problem with the port name
-                ASCOM_ERROR_MESSAGE = "setOutputStatus(): no IP address was specified";
+                ASCOM_ERROR_MESSAGE = "Switch_setOutputStatus(): no IP address was specified";
                 throw new ASCOM.ValueNotSetException(ASCOM_ERROR_MESSAGE);
                 //return ret;
             }
@@ -668,12 +669,12 @@ namespace IP9212_switch
             {
                 siteipURL = "http://localhost/ip9212/set.php?cmd=setpower+P6" + PortNumber + "=" + PortValue;
             }
-            tl.LogMessage("setOutputStatus", "Download url:" + siteipURL);
+            tl.LogMessage("Switch_setOutputStatus", "Download url:" + siteipURL);
 
 
             // Send http query
-            tl.LogMessage("Semaphore", "waitone");
-            IP9212Semaphore.WaitOne(); // lock working with IP9212
+            tl.LogMessage(">Semaphore", "waitone");
+            IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
             string s = "";
             MyWebClient client = new MyWebClient();
             try
@@ -684,25 +685,25 @@ namespace IP9212_switch
                 data.Close();
                 reader.Close();
 
-                tl.LogMessage("setOutputStatus", "Download str:" + s);
+                tl.LogMessage("Switch_setOutputStatus", "Download str:" + s);
 
                 //wait
                 //Thread.Sleep(1000);
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
                 IP9212Semaphore.Release();//unlock ip9212 device for others
 
                 ret = true;
             }
             catch (WebException e)
             {
-                tl.LogMessage("Semaphore", "Release");
+                tl.LogMessage("<Semaphore", "Release");
                 IP9212Semaphore.Release();//unlock ip9212 device for others
                 ret = false;
 
-                tl.LogMessage("setOutputStatus", "Error:" + e.Message);
+                tl.LogMessage("Switch_setOutputStatus", "Error:" + e.Message);
                 ASCOM_ERROR_MESSAGE = "setOutputStatus(" + PortNumber + "," + PortValue + "): Couldn't reach network server";
                 //throw new ASCOM.NotConnectedException(ASCOM_ERROR_MESSAGE);
-                tl.LogMessage("setOutputStatus", "Exit by web error");
+                tl.LogMessage("Switch_setOutputStatus", "Exit by web error");
                 return ret;
                 // report a problem with the port name (never get there)
             }
@@ -719,7 +720,7 @@ namespace IP9212_switch
         //press switch
         public bool pressRoofSwitch()
         {
-            tl.LogMessage("pressRoofSwitch", "Enter");
+            tl.LogMessage("Switch_pressRoofSwitch", "Enter");
 
             //Get config data
             int int_switch_port_state_type = (switch_port_state_type ? 0 : 1);
@@ -728,28 +729,28 @@ namespace IP9212_switch
             //read output states
             int[] outStates = getOutputStatus();
             int curPortState = outStates[switch_roof_port];
-            tl.LogMessage("pressRoofSwitch", "Using port " + switch_roof_port.ToString() + ", type: " + switch_port_state_type.ToString());
+            tl.LogMessage("Switch_pressRoofSwitch", "Using port " + switch_roof_port.ToString() + ", type: " + switch_port_state_type.ToString());
 
             //check - what is the state of switch port?
             if (outStates[switch_roof_port] != int_switch_port_state_type)
             {
                 //return to normal value
-                tl.LogMessage("pressRoofSwitch", "first need to return switch to normal state");
+                tl.LogMessage("Switch_pressRoofSwitch", "first need to return switch to normal state");
                 setOutputStatus(switch_roof_port, int_switch_port_state_type);
             }
 
             //press switch
-            tl.LogMessage("pressRoofSwitch", "Pressing");
+            tl.LogMessage("Switch_pressRoofSwitch", "Pressing");
             setOutputStatus(switch_roof_port, int_inverted_switch_port_state_type);
 
             //wait
             Thread.Sleep(1000);
 
             //release switch
-            tl.LogMessage("pressRoofSwitch", "Releasing");
+            tl.LogMessage("Switch_pressRoofSwitch", "Releasing");
             setOutputStatus(switch_roof_port, int_switch_port_state_type);
 
-            tl.LogMessage("pressRoofSwitch", "Exit");
+            tl.LogMessage("Switch_pressRoofSwitch", "Exit");
             return true;
         }
 
@@ -774,14 +775,16 @@ namespace IP9212_switch
 
             // READ CURRENT INPUT STATE IF IT WASN'T READ YET
             //if shutter in moving state - reduce check interval
-            int checkInterval = 0;
+            uint checkInterval = 0;
             if ((!opened_shutter_flag && !closed_shutter_flag))
             {
-                checkInterval = SHUTTERSTATUS_CHECK_INTERVAL_REDUCED;
+                checkInterval = CACHE_SHUTTERSTATUS_INTERVAL_REDUCED;
+                tl.LogMessage("Switch_OpenedSensorState", "Shutter in medium position, using reduced caching interval (" + CACHE_SHUTTERSTATUS_INTERVAL_REDUCED + ")");
             }
             else
             {
-                checkInterval = SHUTTERSTATUS_CHECK_INTERVAL_NORMAL;
+                checkInterval = CACHE_SHUTTERSTATUS_INTERVAL_NORMAL;
+                tl.LogMessage("Switch_OpenedSensorState", "Using normal caching interval (" + CACHE_SHUTTERSTATUS_INTERVAL_NORMAL + ")");
             }
 
             //Measure how much time have passed since last HARDWARE measure
@@ -789,7 +792,7 @@ namespace IP9212_switch
 
             if (passed.TotalSeconds > checkInterval)
             {
-                tl.LogMessage("Switch_OpenedSensorState", "Cache expired, re-reading states");
+                tl.LogMessage("Switch_OpenedSensorState", "Cache expired [" + passed.TotalSeconds + " sec passed], re-reading states");
                 // Read input status
                 getInputStatus();
 
@@ -797,7 +800,7 @@ namespace IP9212_switch
             }
             else
             {
-                tl.LogMessage("Switch_OpenedSensorState", "Using cached values");
+                tl.LogMessage("Switch_OpenedSensorState", "Using cached inputsensor values [" + passed.TotalSeconds + " sec passed]");
             }
 
 
@@ -833,6 +836,37 @@ namespace IP9212_switch
                 tl.LogMessage("Switch_ClosedSensorState", "Unidentified input status array, re-reading states");
                 getInputStatus();
             }
+
+            // READ CURRENT INPUT STATE IF IT WASN'T READ YET
+            //if shutter in moving state - reduce check interval
+            uint checkInterval = 0;
+            if ((!opened_shutter_flag && !closed_shutter_flag))
+            {
+                checkInterval = CACHE_SHUTTERSTATUS_INTERVAL_REDUCED;
+                tl.LogMessage("Switch_ClosedSensorState", "Shutter in medium position, using reduced caching interval (" + CACHE_SHUTTERSTATUS_INTERVAL_REDUCED + ")");
+            }
+            else
+            {
+                checkInterval = CACHE_SHUTTERSTATUS_INTERVAL_NORMAL;
+                tl.LogMessage("Switch_ClosedSensorState", "Using normal caching interval (" + CACHE_SHUTTERSTATUS_INTERVAL_NORMAL + ")");
+            }
+
+            //Measure how much time have passed since last HARDWARE measure
+            TimeSpan passed = DateTime.Now - lastShutterStatusCheck;
+
+            if (passed.TotalSeconds > checkInterval)
+            {
+                tl.LogMessage("Switch_ClosedSensorState", "Cache expired [" + passed.TotalSeconds + " sec passed], re-reading states");
+                // Read input status
+                getInputStatus();
+
+                lastShutterStatusCheck = DateTime.Now;
+            }
+            else
+            {
+                tl.LogMessage("Switch_ClosedSensorState", "Using cached inputsensor values [" + passed.TotalSeconds + " sec passed]");
+            }
+
 
             //calculate state
             bool boolState;
@@ -883,7 +917,7 @@ namespace IP9212_switch
         /// <summary>
         /// Read settings from ASCOM profile storage
         /// </summary>
-        public void readSettings()
+        public void readSettings___()
         {
             tl.LogMessage("Switch_readSettings", "Enter");
             using (ASCOM.Utilities.Profile p = new Profile())
@@ -1114,7 +1148,7 @@ namespace IP9212_switch
         /// <summary>
         /// Write settings to ASCOM profile storage
         /// </summary>
-        public void writeSettings()
+        public void writeSettings___()
         {
             tl.LogMessage("Switch_writeSettings", "Enter");
             using (Profile p = new Profile())
@@ -1148,7 +1182,7 @@ namespace IP9212_switch
         /// <summary>
         /// Registering switch as ASCOM device
         /// </summary>
-        public void RegisterSettings()
+        public void RegisterSettings___()
         {
             using (var P = new ASCOM.Utilities.Profile())
             {
@@ -1157,23 +1191,10 @@ namespace IP9212_switch
             }
         }
 
-        public void ShowSetupDialog()
-        {
-            using (SetupDialog F = new SetupDialog())
-            {
-                var result = F.ShowDialog();
-                if (result == System.Windows.Forms.DialogResult.OK)
-                {
-                    writeSettings(); // Persist device configuration values to the ASCOM Profile store
-                }
-            }
-
-        }
-
         /// <summary>
         /// Tracing (logging) - 3 overloaded method
         /// </summary>
-        public void Trace(string st)
+        public void Trace__(string st)
         {
             Console.WriteLine(st);
             try
@@ -1189,12 +1210,12 @@ namespace IP9212_switch
             }
         }
 
-        public void Trace(int st)
+        public void Trace__(int st)
         {
             Console.WriteLine(st);
         }
 
-        public void Trace(string st, int[] arr_int)
+        public void Trace__(string st, int[] arr_int)
         {
             string st_out = st;
             foreach (int el in arr_int)
