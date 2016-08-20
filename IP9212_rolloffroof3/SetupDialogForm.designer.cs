@@ -50,6 +50,7 @@ namespace ASCOM.IP9212_rolloffroof3
             this.switchport = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.lblDriverInfo = new System.Windows.Forms.Label();
             this.lblVersion = new System.Windows.Forms.Label();
             this.linkAviosys = new System.Windows.Forms.LinkLabel();
             this.linkAstromania = new System.Windows.Forms.LinkLabel();
@@ -58,20 +59,19 @@ namespace ASCOM.IP9212_rolloffroof3
             this.groupBox4 = new System.Windows.Forms.GroupBox();
             this.label9 = new System.Windows.Forms.Label();
             this.cmbLang = new System.Windows.Forms.ComboBox();
+            this.label16 = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
             this.label12 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
             this.label15 = new System.Windows.Forms.Label();
             this.txtNetworkTimeout = new System.Windows.Forms.TextBox();
+            this.txtCacheReadReduced = new System.Windows.Forms.TextBox();
             this.txtCacheRead = new System.Windows.Forms.TextBox();
             this.txtCacheConnect = new System.Windows.Forms.TextBox();
             this.chkTrace = new System.Windows.Forms.CheckBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtCacheReadReduced = new System.Windows.Forms.TextBox();
-            this.label16 = new System.Windows.Forms.Label();
-            this.lblDriverInfo = new System.Windows.Forms.Label();
             this.groupBox2.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.groupBox6.SuspendLayout();
@@ -83,7 +83,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // cmdOK
             // 
             this.cmdOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.cmdOK.Location = new System.Drawing.Point(262, 190);
+            this.cmdOK.Location = new System.Drawing.Point(262, 199);
             this.cmdOK.Name = "cmdOK";
             this.cmdOK.Size = new System.Drawing.Size(83, 24);
             this.cmdOK.TabIndex = 4;
@@ -94,7 +94,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // cmdCancel
             // 
             this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cmdCancel.Location = new System.Drawing.Point(354, 190);
+            this.cmdCancel.Location = new System.Drawing.Point(354, 199);
             this.cmdCancel.Name = "cmdCancel";
             this.cmdCancel.Size = new System.Drawing.Size(80, 25);
             this.cmdCancel.TabIndex = 5;
@@ -294,16 +294,27 @@ namespace ASCOM.IP9212_rolloffroof3
             this.groupBox6.Controls.Add(this.pictureBox1);
             this.groupBox6.Location = new System.Drawing.Point(231, 9);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(226, 169);
+            this.groupBox6.Size = new System.Drawing.Size(261, 184);
             this.groupBox6.TabIndex = 3;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "About";
             // 
+            // lblDriverInfo
+            // 
+            this.lblDriverInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.lblDriverInfo.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.lblDriverInfo.Location = new System.Drawing.Point(60, 14);
+            this.lblDriverInfo.Name = "lblDriverInfo";
+            this.lblDriverInfo.Size = new System.Drawing.Size(195, 78);
+            this.lblDriverInfo.TabIndex = 11;
+            this.lblDriverInfo.Text = "Driver name";
+            // 
             // lblVersion
             // 
             this.lblVersion.AutoSize = true;
+            this.lblVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.lblVersion.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.lblVersion.Location = new System.Drawing.Point(60, 72);
+            this.lblVersion.Location = new System.Drawing.Point(60, 93);
             this.lblVersion.Name = "lblVersion";
             this.lblVersion.Size = new System.Drawing.Size(72, 13);
             this.lblVersion.TabIndex = 2;
@@ -313,7 +324,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // 
             this.linkAviosys.AutoSize = true;
             this.linkAviosys.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.linkAviosys.Location = new System.Drawing.Point(120, 137);
+            this.linkAviosys.Location = new System.Drawing.Point(120, 160);
             this.linkAviosys.Name = "linkAviosys";
             this.linkAviosys.Size = new System.Drawing.Size(94, 13);
             this.linkAviosys.TabIndex = 2;
@@ -325,7 +336,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // 
             this.linkAstromania.AutoSize = true;
             this.linkAstromania.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.linkAstromania.Location = new System.Drawing.Point(10, 136);
+            this.linkAstromania.Location = new System.Drawing.Point(10, 159);
             this.linkAstromania.Name = "linkAstromania";
             this.linkAstromania.Size = new System.Drawing.Size(104, 13);
             this.linkAstromania.TabIndex = 1;
@@ -338,7 +349,7 @@ namespace ASCOM.IP9212_rolloffroof3
             this.picAstromania.Cursor = System.Windows.Forms.Cursors.Hand;
             this.picAstromania.Image = global::ASCOM.IP9212_rolloffroof3.Properties.Resources.logo_48_blue;
             this.picAstromania.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.picAstromania.Location = new System.Drawing.Point(9, 14);
+            this.picAstromania.Location = new System.Drawing.Point(9, 23);
             this.picAstromania.Name = "picAstromania";
             this.picAstromania.Size = new System.Drawing.Size(48, 48);
             this.picAstromania.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -350,7 +361,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // 
             this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pictureBox1.Image = global::ASCOM.IP9212_rolloffroof3.Properties.Resources.ASCOM;
-            this.pictureBox1.Location = new System.Drawing.Point(9, 72);
+            this.pictureBox1.Location = new System.Drawing.Point(9, 93);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(48, 56);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -376,7 +387,7 @@ namespace ASCOM.IP9212_rolloffroof3
             this.groupBox4.Controls.Add(this.chkTrace);
             this.groupBox4.Location = new System.Drawing.Point(11, 230);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(446, 146);
+            this.groupBox4.Size = new System.Drawing.Size(481, 146);
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Advanced";
@@ -400,11 +411,21 @@ namespace ASCOM.IP9212_rolloffroof3
             this.cmbLang.Size = new System.Drawing.Size(132, 21);
             this.cmbLang.TabIndex = 1;
             // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.label16.Location = new System.Drawing.Point(316, 118);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(24, 13);
+            this.label16.TabIndex = 11;
+            this.label16.Text = "sec";
+            // 
             // label10
             // 
             this.label10.AutoSize = true;
             this.label10.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label10.Location = new System.Drawing.Point(310, 93);
+            this.label10.Location = new System.Drawing.Point(316, 93);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(24, 13);
             this.label10.TabIndex = 11;
@@ -414,7 +435,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // 
             this.label11.AutoSize = true;
             this.label11.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label11.Location = new System.Drawing.Point(310, 47);
+            this.label11.Location = new System.Drawing.Point(316, 47);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(24, 13);
             this.label11.TabIndex = 5;
@@ -424,11 +445,21 @@ namespace ASCOM.IP9212_rolloffroof3
             // 
             this.label12.AutoSize = true;
             this.label12.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label12.Location = new System.Drawing.Point(310, 70);
+            this.label12.Location = new System.Drawing.Point(316, 70);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(24, 13);
             this.label12.TabIndex = 8;
             this.label12.Text = "sec";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.label1.Location = new System.Drawing.Point(7, 118);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(258, 13);
+            this.label1.TabIndex = 9;
+            this.label1.Text = "Caching switch ouput port data during open/close for";
             // 
             // label13
             // 
@@ -462,21 +493,28 @@ namespace ASCOM.IP9212_rolloffroof3
             // 
             // txtNetworkTimeout
             // 
-            this.txtNetworkTimeout.Location = new System.Drawing.Point(271, 44);
+            this.txtNetworkTimeout.Location = new System.Drawing.Point(277, 44);
             this.txtNetworkTimeout.Name = "txtNetworkTimeout";
             this.txtNetworkTimeout.Size = new System.Drawing.Size(33, 20);
             this.txtNetworkTimeout.TabIndex = 2;
             // 
+            // txtCacheReadReduced
+            // 
+            this.txtCacheReadReduced.Location = new System.Drawing.Point(277, 115);
+            this.txtCacheReadReduced.Name = "txtCacheReadReduced";
+            this.txtCacheReadReduced.Size = new System.Drawing.Size(33, 20);
+            this.txtCacheReadReduced.TabIndex = 5;
+            // 
             // txtCacheRead
             // 
-            this.txtCacheRead.Location = new System.Drawing.Point(271, 90);
+            this.txtCacheRead.Location = new System.Drawing.Point(277, 90);
             this.txtCacheRead.Name = "txtCacheRead";
             this.txtCacheRead.Size = new System.Drawing.Size(33, 20);
             this.txtCacheRead.TabIndex = 4;
             // 
             // txtCacheConnect
             // 
-            this.txtCacheConnect.Location = new System.Drawing.Point(271, 67);
+            this.txtCacheConnect.Location = new System.Drawing.Point(277, 67);
             this.txtCacheConnect.Name = "txtCacheConnect";
             this.txtCacheConnect.Size = new System.Drawing.Size(33, 20);
             this.txtCacheConnect.TabIndex = 3;
@@ -494,47 +532,11 @@ namespace ASCOM.IP9212_rolloffroof3
             this.chkTrace.Text = "Trace on";
             this.chkTrace.UseVisualStyleBackColor = true;
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label1.Location = new System.Drawing.Point(7, 118);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(258, 13);
-            this.label1.TabIndex = 9;
-            this.label1.Text = "Caching switch ouput port data during open/close for";
-            // 
-            // txtCacheReadReduced
-            // 
-            this.txtCacheReadReduced.Location = new System.Drawing.Point(271, 115);
-            this.txtCacheReadReduced.Name = "txtCacheReadReduced";
-            this.txtCacheReadReduced.Size = new System.Drawing.Size(33, 20);
-            this.txtCacheReadReduced.TabIndex = 5;
-            // 
-            // label16
-            // 
-            this.label16.AutoSize = true;
-            this.label16.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label16.Location = new System.Drawing.Point(310, 118);
-            this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(24, 13);
-            this.label16.TabIndex = 11;
-            this.label16.Text = "sec";
-            // 
-            // lblDriverInfo
-            // 
-            this.lblDriverInfo.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.lblDriverInfo.Location = new System.Drawing.Point(60, 14);
-            this.lblDriverInfo.Name = "lblDriverInfo";
-            this.lblDriverInfo.Size = new System.Drawing.Size(154, 48);
-            this.lblDriverInfo.TabIndex = 11;
-            this.lblDriverInfo.Text = "Driver name";
-            // 
             // SetupDialogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(465, 378);
+            this.ClientSize = new System.Drawing.Size(504, 378);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox1);

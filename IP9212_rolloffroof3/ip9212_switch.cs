@@ -169,8 +169,7 @@ namespace ASCOM.IP9212_rolloffroof3
             //readSettings();
 
             //reset cache
-            lastConnectedCheck = EXPIRED_CACHE;
-            lastShutterStatusCheck = EXPIRED_CACHE;
+            clearCache();
 
             //if current state of connection coincidies with new state then do nothing
             if (hardware_connected_flag)
@@ -204,8 +203,7 @@ namespace ASCOM.IP9212_rolloffroof3
             //readSettings();
 
             //reset cache
-            lastConnectedCheck = EXPIRED_CACHE;
-            lastShutterStatusCheck = EXPIRED_CACHE;
+            clearCache();
 
             //if current state of connection coincidies with new state then do nothing
             if (!hardware_connected_flag)
@@ -704,11 +702,15 @@ namespace ASCOM.IP9212_rolloffroof3
                 ASCOM_ERROR_MESSAGE = "setOutputStatus(" + PortNumber + "," + PortValue + "): Couldn't reach network server";
                 //throw new ASCOM.NotConnectedException(ASCOM_ERROR_MESSAGE);
                 tl.LogMessage("Switch_setOutputStatus", "Exit by web error");
-                return ret;
                 // report a problem with the port name (never get there)
             }
             // Parse data
             // not implemented yet
+
+
+            //Clear input cache
+            tl.LogMessage("Switch_setOutputStatus", "Clear InputStatus cache");
+            clearCache();
 
             return ret;
         }
@@ -749,6 +751,7 @@ namespace ASCOM.IP9212_rolloffroof3
             //release switch
             tl.LogMessage("Switch_pressRoofSwitch", "Releasing");
             setOutputStatus(switch_roof_port, int_switch_port_state_type);
+
 
             tl.LogMessage("Switch_pressRoofSwitch", "Exit");
             return true;
@@ -912,6 +915,13 @@ namespace ASCOM.IP9212_rolloffroof3
 
             return retStatus;
 
+        }
+
+        private void clearCache()
+        {
+            //reset cache
+            lastConnectedCheck = EXPIRED_CACHE;
+            lastShutterStatusCheck = EXPIRED_CACHE;
         }
 
         /// <summary>

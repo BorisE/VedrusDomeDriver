@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 //
 // TODO - Add your authorship information here
-[assembly: AssemblyTitle("ASCOM.IP9212_rolloffroof2.Dome")]
+[assembly: AssemblyTitle("ASCOM.IP9212_rolloffroof3.Dome")]
 [assembly: AssemblyDescription("ASCOM Dome driver for rolloffroof on IP9212")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("astromania.info")]
@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("7d5b00a7-d015-45e2-a513-10bc94b622f9")]
+[assembly: Guid("05FE1498-3E5E-40ED-8256-F23ED2F06EB2")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -36,4 +36,4 @@ using System.Runtime.InteropServices;
 //
 // TODO - Set your driver's version here
 [assembly: AssemblyVersion("6.0.*")]
-[assembly: AssemblyFileVersion("2.0.3.0")]
+[assembly: AssemblyFileVersion("3.0.1")]

@@ -25,7 +25,7 @@
 // 15-08-2016	XXX	3.0.0	modified login mechanizm 
 //                          caching optimization 
 //                          architecture changed
-//
+// 20-08-2016	XXX	3.0.1	caching optimization +minor changes
 //
 #define Dome
 
@@ -36,8 +36,6 @@ using System.Runtime.InteropServices;
 using System.IO;
 
 using ASCOM;
-using ASCOM.Astrometry;
-using ASCOM.Astrometry.AstroUtils;
 using ASCOM.Utilities;
 using ASCOM.DeviceInterface;
 using System.Globalization;
@@ -74,6 +72,7 @@ namespace ASCOM.IP9212_rolloffroof3
         /// </summary>
         private static string driverDescription = "ASCOM Dome driver for roll-off roof controlled by Aviosys IP9212. Written by Boris Emchenko http://astromania.info";
         private static string driverDescriptionShort = "Roll-off roof on IP9212v3";
+        private static string driverVersion = "3.0.1";
 
         internal static string traceStateProfileName = "Trace Level";
         internal static string traceStateDefault = "true";
@@ -114,12 +113,12 @@ namespace ASCOM.IP9212_rolloffroof3
         /// <summary>
         /// Private variable to hold an ASCOM Utilities object
         /// </summary>
-        private Util utilities;
+        //private Util utilities;
 
         /// <summary>
         /// Private variable to hold an ASCOM AstroUtilities object to provide the Range method
         /// </summary>
-        private AstroUtils astroUtilities;
+        //private AstroUtils astroUtilities;
 
         /// <summary>
         /// Private variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
@@ -127,15 +126,15 @@ namespace ASCOM.IP9212_rolloffroof3
         internal TraceLogger tl;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="IP9212_rolloffroof2"/> class.
+        /// Initializes a new instance of the <see cref="IP9212_rolloffroof3"/> class.
         /// Must be public for COM registration.
         /// </summary>
         public Dome()
         {
-            #if DEBUG
             tl = new TraceLogger("", "IP9212_rolloffroof2");
+            #if DEBUG
             tl.Enabled = true; //at least for debugging - log will be always created no matter the value of traceState
-            tl.LogMessage("Dome", "Starting initialisation");
+            tl.LogMessage("Dome", "Init traceloger (debug mode)");
             #endif
 
             Hardware = new IP9212_switch_class(this);
@@ -144,11 +143,12 @@ namespace ASCOM.IP9212_rolloffroof3
 
             //set the correct logger state
             tl.Enabled = traceState;
+            tl.LogMessage("Dome", "Starting initialisation");
 
             connectedState = false; // Initialise connected to false
          
-            utilities = new Util(); //Initialise util object
-            astroUtilities = new AstroUtils(); // Initialise astro utilities object
+            //utilities = new Util(); //Initialise util object
+            //astroUtilities = new AstroUtils(); // Initialise astro utilities object
 
             tl.LogMessage("Dome", "Completed initialisation");
         }
@@ -200,7 +200,7 @@ namespace ASCOM.IP9212_rolloffroof3
             get
             {
                 tl.LogMessage("SupportedActions Get", "Returning empty arraylist");
-                return new ArrayList();
+                return new ArrayList() { "IPAddress", "GetCacheParameter", "GetTimeout" };
             }
         }
 
@@ -277,10 +277,10 @@ namespace ASCOM.IP9212_rolloffroof3
             tl.Enabled = false;
             tl.Dispose();
             tl = null;
-            utilities.Dispose();
-            utilities = null;
-            astroUtilities.Dispose();
-            astroUtilities = null;
+            //utilities.Dispose();
+            //utilities = null;
+            //astroUtilities.Dispose();
+            //astroUtilities = null;
             Hardware.Dispose();
             Hardware = null;
 
@@ -377,7 +377,6 @@ namespace ASCOM.IP9212_rolloffroof3
                 //Working olny if Assembly Version set to 6xxx. So specify manual settings...
                 //Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
                 //string driverVersion = String.Format(CultureInfo.InvariantCulture, "{0}.{1}", version.Major, version.Minor);
-                string driverVersion = "2.0";
                 tl.LogMessage("DriverVersion Get", driverVersion);
                 return driverVersion;
             }
