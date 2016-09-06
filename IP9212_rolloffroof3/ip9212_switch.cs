@@ -244,7 +244,8 @@ namespace ASCOM.IP9212_rolloffroof3
                 lastConnectedCheck = DateTime.Now;
 
                 //read
-                checkLink_async();
+                //checkLink_async();
+                checkLink_forced();
             }
             else
             {
@@ -746,6 +747,8 @@ namespace ASCOM.IP9212_rolloffroof3
             setOutputStatus(switch_roof_port, int_inverted_switch_port_state_type);
 
             //wait
+            Thread.Sleep(1000);
+            Thread.Sleep(1000);
             Thread.Sleep(1000);
 
             //release switch
