@@ -1,4 +1,4 @@
-﻿namespace ASCOM.IP9212_rolloffroof2
+﻿namespace ASCOM.Vedrus_rolloffroof
 {
     partial class TestASCOM2
     {

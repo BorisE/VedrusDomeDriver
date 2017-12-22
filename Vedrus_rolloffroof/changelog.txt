@@ -1,35 +1,14 @@
-﻿ASCOM Aviosys IP9212 Dome driver
+﻿ASCOM Roll-off Roof Dome driver for Astrohostel.ru observatory
 Written by Boris Emchenko
 http://astromania.info
 
-ASCOM Driver for roll-off roof controling by AvioSys IP9212 power server. It receives commands by http protocol commands
+ASCOM Driver for roll-off roof controling by Raspberry Pi device. It receives commands by http protocol commands
 
 Change log
+
+0.1.0 23-12-2017
+- Initial edit, based on AvioSys IP9212 Dome Driver
+
 3.0.1	20-08-2016
-- cache optimization (auto clear on set operation)
+- Version that was used as a template for Astrohostel.ru driver
 
-3.0.0	14-08-2016
-- login mechanizm changed
-- introduced web timeout (semaphores also)
-- internal archetecture changed (merge with IP9212 1st gen driver)
-- caching code optimization(some queries wasn't cached, some was double read)
-
-2.0.2	17-11-2013	
-- caching improvements 
-
-2.0.1	16-11-2013	
-- final release 
-
-2.0.0	30-10-2013
-- rewriting driver based on new ASCOM template. 
-- Using standalone driver for controlling Aviosys IP 9212 (using some elemenets of ASCOM switch wich is not disclosed yet)
-- Using ASCOM trace log instead of custom
-
-0.1.2	30-09-2013	
-- impemented caching for reading connected and shutter states
-
-0.1.1	15-09-2013
-- starting impementing caching for reading connected and shutter states
-
-0.1.0 [12-06-2013]
-- Initial edit, created from ASCOM driver template

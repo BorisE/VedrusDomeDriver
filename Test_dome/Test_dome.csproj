@@ -8,8 +8,8 @@
     <ProjectGuid>{8E8D406C-1838-4914-867D-AB602D0EAF3E}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ASCOM.IP9212_rolloffroof2</RootNamespace>
-    <AssemblyName>ASCOM.IP9212_rolloffroof2.Test</AssemblyName>
+    <RootNamespace>ASCOM.Vedrus_rolloffroof</RootNamespace>
+    <AssemblyName>ASCOM.Vedrus_rolloffroof.Test</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -36,7 +36,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>ASCOM.IP9212_rolloffroof2.Program</StartupObject>
+    <StartupObject>ASCOM.Vedrus_rolloffroof.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ASCOM.DeviceInterfaces, Version=6.0.0.0, Culture=neutral, PublicKeyToken=565de7938946fba7, processorArchitecture=MSIL" />

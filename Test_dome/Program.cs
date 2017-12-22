@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace ASCOM.IP9212_rolloffroof2
+namespace ASCOM.Vedrus_rolloffroof
 {
     static class Program
     {

@@ -35,11 +35,7 @@ namespace ASCOM.Vedrus_rolloffroof
     {
         Dome DomeDriverLnk;
 
-        internal bool debugFlag = false;
-
-        public static string IP9212_switch_id = "IP9212_switch";
-        public static string IP9212_switch_description = "Aviosys IP9212 observatory switch driver. Written by Boris Emchenko http://astromania.info";
-        public static string IP9212_switch_description_short = "Aviosys IP9212 switch";
+        internal bool debugFlag = true;
 
         //Settings
         #region Settings variables
@@ -83,7 +79,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// <summary>
         /// input sensors state
         /// </summary>
-        private int[] input_state_arr = new int[1] { -1 };
+        private int input_dome_state = -1;
         // [0] - overall read status
         // [1..8] - status of # input
 
@@ -101,7 +97,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// <summary>
         /// Semaphor for blocking concurrent requests
         /// </summary>
-        public static Semaphore IP9212Semaphore;
+        public static Semaphore DeviceSemaphore;
         public static Int32 Semaphore_timeout = 2000; //millisec
         internal static readonly int Semaphore_timeout_extratime = 2000; //2 sec to NetworkTimeout
 
@@ -155,7 +151,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
             hardware_connected_flag = false;
 
-            IP9212Semaphore = new Semaphore(1, 2, "ip9212");
+            DeviceSemaphore = new Semaphore(1, 2, "ip9212");
 
             tl.LogMessage("Switch_constructor", "Exit");
         }
@@ -179,7 +175,7 @@ namespace ASCOM.Vedrus_rolloffroof
             }
 
             // check (forced) if there is connection with hardware
-            if (IsConnected(true))
+            if (IsHardwareReachable(true))
             {
                 tl.LogMessage("Switch_Connect", "Connected");
                 return;
@@ -221,7 +217,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// </summary>
         /// <param name="forcedflag">[bool] if function need to force noncached checking of device availability</param>
         /// <returns>true is available, false otherwise</returns>
-        public bool IsConnected(bool forcedflag = false)
+        public bool IsHardwareReachable(bool forcedflag = false)
         {
             tl.LogMessage("Switch_IsConnected", "Enter, forced flag=" + forcedflag.ToString());
 
@@ -230,29 +226,33 @@ namespace ASCOM.Vedrus_rolloffroof
             {
                 hardware_connected_flag = false;
                 checkLink_forced();
-                return hardware_connected_flag;
-            }
-
-            //Usual mode
-            //Measure how much time have passed since last HARDWARE measure
-            TimeSpan passed = DateTime.Now - lastConnectedCheck;
-            if (passed.TotalSeconds > CACHE_CHECKCONNECTED_INTERVAL)
-            {
-                // check that the driver hardware connection exists and is connected to the hardware
-                tl.LogMessage("Switch_IsConnected", "Starting read hardware values thread [in cache: " + passed.TotalSeconds + "s]...");
-                // reset cache
-                lastConnectedCheck = DateTime.Now;
-
-                //read
-                //checkLink_async();
-                checkLink_forced();
             }
             else
             {
-                // use previos value
-                tl.LogMessage("Switch_IsConnected", "Using cached value [in cache:" + passed.TotalSeconds + "s]");
-            }
+            //Usual mode
+            
+                //Measure how much time have passed since last HARDWARE measure
+                TimeSpan passed = DateTime.Now - lastConnectedCheck;
+                if (passed.TotalSeconds > CACHE_CHECKCONNECTED_INTERVAL)
+                {
+                    // check that the driver hardware connection exists and is connected to the hardware
+                    tl.LogMessage("Switch_IsConnected", "Starting read hardware values thread [in cache: " + passed.TotalSeconds + "s]...");
 
+                    // reset cache. Note that this check inserted here not in DownloadComlete. 
+                    // This is because I am afraid of long query wait which will force to produce many queries to IP Device. 
+                    // Should move to timeout check (but don't know how)
+                    lastConnectedCheck = DateTime.Now;
+
+                    //read
+                    //checkLink_async();
+                    checkLink_forced(); //use forced variant for this build
+                }
+                else
+                {
+                    // do nothing, use previos value
+                    tl.LogMessage("Switch_IsConnected", "Using cached value [in cache:" + passed.TotalSeconds + "s]");
+                }
+            }
             tl.LogMessage("Switch_IsConnected", "Exit. Return value: " + hardware_connected_flag);
             return hardware_connected_flag;
         }
@@ -294,7 +294,7 @@ namespace ASCOM.Vedrus_rolloffroof
             try
             {
                 tl.LogMessage(">Semaphore", "WaitOne");
-                IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
+                DeviceSemaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
 
                 client.DownloadDataCompleted += new DownloadDataCompletedEventHandler(checkLink_DownloadCompleted);
 
@@ -305,7 +305,7 @@ namespace ASCOM.Vedrus_rolloffroof
             catch (WebException e)
             {
                 tl.LogMessage("<Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
+                DeviceSemaphore.Release();//unlock ip9212 device for others
                 hardware_connected_flag = false;
                 tl.LogMessage("Switch_CheckLink_async", "error:" + e.Message);
                 //throw new ASCOM.NotConnectedException("Couldn't reach network server");
@@ -323,7 +323,7 @@ namespace ASCOM.Vedrus_rolloffroof
             // Object was disposed before download complete, so we should release all and exit
                 return;
             }
-            IP9212Semaphore.Release();//unlock ip9212 device for others
+            DeviceSemaphore.Release();//unlock ip9212 device for others
             tl.LogMessage("Switch_checkLink_DownloadCompleted", "http request was processed");
             if (e.Error != null)
             {
@@ -385,37 +385,41 @@ namespace ASCOM.Vedrus_rolloffroof
         /// 2. Because this procedure returns also data for shutter status check, it caches it's result, so OpenedState() and ClosedState() would reacquire this data
         /// </summary>
         /// <returns>Returns int array [0..8] with status flags of each input sensor. arr[0] is for read status (-1 for error, 1 for good read, 0 for smth else)</returns> 
-        public int[] getInputStatus()
+
+        // http://192.168.2.199/roof/status/
+        //ret:  0 closed
+        //      1 opened
+        // emulation:
+        // http://localhost/vedrus/roof_status.php
+        public int getInputStatus()
         {
             tl.LogMessage("Switch_getInputStatus", "Enter");
 
-            input_state_arr[0] = -1;
+            input_dome_state = -1;
 
             if (string.IsNullOrEmpty(ip_addr))
             {
-                input_state_arr[0] = -1;
+                input_dome_state = -1;
                 hardware_connected_flag = false;
 
                 tl.LogMessage("Switch_getInputStatus", "ERROR (ip_addr wasn't set)!");
                 // report a problem with the port name
-                return input_state_arr;
+                return input_dome_state;
             }
 
             string siteipURL;
-            siteipURL = "http://" + ip_login + ":" + ip_pass + "@" + ip_addr + ":" + ip_port + "/set.cmd?cmd=getio";
-            // new style
-            siteipURL = "http://" + ip_addr + ":" + ip_port + "/Set.cmd?user=" + ip_login + "+pass=" + ip_pass + "CMD=getio";
+            siteipURL = "http://" + ip_addr + ":" + ip_port + "/roof/status/";
 
             //FOR DEBUGGING
             if (debugFlag)
             {
-                siteipURL = "http://localhost/ip9212/getio.php";
+                siteipURL = "http://localhost/vedrus/roof_status.php";
             }
             tl.LogMessage("Switch_getInputStatus", "Download url:" + siteipURL);
 
             // Send http query
             tl.LogMessage(">Semaphore", "waitone");
-            IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
+            DeviceSemaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
             string s = "";
             MyWebClient client = new MyWebClient();
             try
@@ -429,11 +433,11 @@ namespace ASCOM.Vedrus_rolloffroof
                 tl.LogMessage("Switch_getInputStatus", "Download str:" + s);
 
                 tl.LogMessage("<Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
+                DeviceSemaphore.Release();//unlock ip9212 device for others
                 //wait
                 //Thread.Sleep(1000);
 
-                if (s.IndexOf("P5") >= 0)
+                if (s.Length == 1 )
                 {
                     hardware_connected_flag = true;
                     tl.LogMessage("Switch_getInputStatus", "Downloaded data is ok");
@@ -454,8 +458,8 @@ namespace ASCOM.Vedrus_rolloffroof
             catch (WebException e)
             {
                 tl.LogMessage("<Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
-                input_state_arr[0] = -1;
+                DeviceSemaphore.Release();//unlock ip9212 device for others
+                input_dome_state = -1;
                 hardware_connected_flag = false;
 
                 tl.LogMessage("Switch_getInputStatus", "Error:" + e.Message);
@@ -463,59 +467,37 @@ namespace ASCOM.Vedrus_rolloffroof
             }
 
             tl.LogMessage("Switch_getInputStatus", "Exit");
-            return input_state_arr;
+            return input_dome_state;
         }
 
         /// <summary>
         /// Parse input sensors string as retured by GETIO command
         /// </summary>
         /// <param name="s">string </param>
-        public int[] parseInputData(string s)
+        public int parseInputData(string s)
         {
             tl.LogMessage("Switch_parseInputData", "Enter");
             // Parse data
             try
             {
-                // Parse result string
-                string[] stringSeparators = new string[] { "P5" };
-                string[] iprawdata_arr = s.Split(stringSeparators, StringSplitOptions.None);
-
-                Array.Resize(ref input_state_arr, iprawdata_arr.Length);
-
-                //Parse an array
-                for (var i = 1; i < iprawdata_arr.Length; i++)
+                if (s.Length==1)
                 {
-                    //Убираем запятую
-                    if (iprawdata_arr[i].Length > 3)
-                    {
-                        iprawdata_arr[i] = iprawdata_arr[i].Substring(0, 3);
-                    }
-                    //Trace(iprawdata_arr[i]);
-
-                    //Разбиваем на пары "номер порта"="значение"
-                    char[] delimiterChars = { '=' };
-                    string[] data_arr = iprawdata_arr[i].Split(delimiterChars);
-                    //st = st + " |" + i + ' ' + data_arr[1];
-                    if (data_arr.Length > 1)
-                    {
-                        input_state_arr[i] = Convert.ToInt16(data_arr[1]);
-                        //Trace(input_state_arr[i]);
-                    }
-                    else
-                    {
-                        input_state_arr[i] = -1;
-                    }
+                    if (!int.TryParse(s, out input_dome_state))  input_dome_state = -1;
                 }
-                input_state_arr[0] = 1;
+                else
+                {
+                    input_dome_state = -1;
+                }
+
                 tl.LogMessage("Switch_parseInputData", "Exit, data was parsed");
             }
             catch
             {
                 tl.LogMessage("Switch_parseInputData", "ERROR (Exception)!");
-                input_state_arr[0] = -1;
+                input_dome_state = -1;
                 tl.LogMessage("Switch_parseInputData", "Exit, parse error");
             }
-            return input_state_arr;
+            return input_dome_state;
         }
 
         /// <summary>
@@ -557,7 +539,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
             // Send http query
             tl.LogMessage(">Semaphore", "waitone");
-            IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
+            DeviceSemaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
 
             string s = "";
             MyWebClient client = new MyWebClient();
@@ -572,7 +554,7 @@ namespace ASCOM.Vedrus_rolloffroof
                 tl.LogMessage("Switch_getOutputStatus", "Download str:" + s);
 
                 tl.LogMessage("<Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
+                DeviceSemaphore.Release();//unlock ip9212 device for others
                 //wait
                 //Thread.Sleep(1000);
 
@@ -580,7 +562,7 @@ namespace ASCOM.Vedrus_rolloffroof
             catch (WebException e)
             {
                 tl.LogMessage("<Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
+                DeviceSemaphore.Release();//unlock ip9212 device for others
                 ipdata[0] = -1;
                 tl.LogMessage("Switch_getOutputStatus", "Error:" + e.Message);
                 ASCOM_ERROR_MESSAGE = "getInputStatus(): Couldn't reach network server";
@@ -673,7 +655,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
             // Send http query
             tl.LogMessage(">Semaphore", "waitone");
-            IP9212Semaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
+            DeviceSemaphore.WaitOne(Semaphore_timeout); // lock working with IP9212
             string s = "";
             MyWebClient client = new MyWebClient();
             try
@@ -689,14 +671,14 @@ namespace ASCOM.Vedrus_rolloffroof
                 //wait
                 //Thread.Sleep(1000);
                 tl.LogMessage("<Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
+                DeviceSemaphore.Release();//unlock ip9212 device for others
 
                 ret = true;
             }
             catch (WebException e)
             {
                 tl.LogMessage("<Semaphore", "Release");
-                IP9212Semaphore.Release();//unlock ip9212 device for others
+                DeviceSemaphore.Release();//unlock ip9212 device for others
                 ret = false;
 
                 tl.LogMessage("Switch_setOutputStatus", "Error:" + e.Message);
@@ -768,58 +750,9 @@ namespace ASCOM.Vedrus_rolloffroof
         {
             tl.LogMessage("Switch_OpenedSensorState", "Enter");
 
-            //read OPENED_PORT STATE TYPE value
-            int int_opened_port_state_type;
-            int_opened_port_state_type = (opened_port_state_type ? 1 : 0);
-
-            // READ CURRENT INPUT STATE IF IT WASN'T READ YET
-            if (input_state_arr[0] <= 0)
-            {
-                tl.LogMessage("Switch_OpenedSensorState", "Unidentified input status array, re-reading states");
-                getInputStatus();
-            }
-
-            // READ CURRENT INPUT STATE IF IT WASN'T READ YET
-            //if shutter in moving state - reduce check interval
-            uint checkInterval = 0;
-            if ((!opened_shutter_flag && !closed_shutter_flag))
-            {
-                checkInterval = CACHE_SHUTTERSTATUS_INTERVAL_REDUCED;
-                tl.LogMessage("Switch_OpenedSensorState", "Shutter in medium position, using reduced caching interval (" + CACHE_SHUTTERSTATUS_INTERVAL_REDUCED + ")");
-            }
-            else
-            {
-                checkInterval = CACHE_SHUTTERSTATUS_INTERVAL_NORMAL;
-                tl.LogMessage("Switch_OpenedSensorState", "Using normal caching interval (" + CACHE_SHUTTERSTATUS_INTERVAL_NORMAL + ")");
-            }
-
-            //Measure how much time have passed since last HARDWARE measure
-            TimeSpan passed = DateTime.Now - lastShutterStatusCheck;
-
-            if (passed.TotalSeconds > checkInterval)
-            {
-                tl.LogMessage("Switch_OpenedSensorState", "Cache expired [" + passed.TotalSeconds + " sec passed], re-reading states");
-                // Read input status
-                getInputStatus();
-
-                lastShutterStatusCheck = DateTime.Now;
-            }
-            else
-            {
-                tl.LogMessage("Switch_OpenedSensorState", "Using cached inputsensor values [" + passed.TotalSeconds + " sec passed]");
-            }
-
-
-            //calculate state
-            bool boolState;
-            if (input_state_arr[opened_sensor_port] == int_opened_port_state_type)
-            {
-                boolState = true;
-            }
-            else
-            {
-                boolState = false;
-            }
+            //Заглушка, так как концевик один
+            bool closedstate = ClosedSensorState();
+            bool boolState = !closedstate;
 
             tl.LogMessage("Switch_OpenedSensorState", "Exix. Status: " + boolState);
             return boolState;
@@ -837,7 +770,7 @@ namespace ASCOM.Vedrus_rolloffroof
             int int_closed_port_state_type = (closed_port_state_type ? 1 : 0);
 
             // READ CURRENT INPUT STATE
-            if (input_state_arr[0] <= 0)
+            if (input_dome_state <= 0)
             {
                 tl.LogMessage("Switch_ClosedSensorState", "Unidentified input status array, re-reading states");
                 getInputStatus();
@@ -876,7 +809,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
             //calculate state
             bool boolState;
-            if (input_state_arr[closed_sensor_port] == int_closed_port_state_type)
+            if (input_dome_state == int_closed_port_state_type)
             {
                 boolState = true;
             }
@@ -928,332 +861,6 @@ namespace ASCOM.Vedrus_rolloffroof
         }
 
         /// <summary>
-        /// Read settings from ASCOM profile storage
-        /// </summary>
-        public void readSettings___()
-        {
-            tl.LogMessage("Switch_readSettings", "Enter");
-            using (ASCOM.Utilities.Profile p = new Profile())
-            {
-                //System.Collections.ArrayList T = p.RegisteredDeviceTypes;
-                p.DeviceType = "Switch";
-
-                //General settings
-                try
-                {
-                    ip_addr = p.GetValue(IP9212_switch_id, ip_addr_profilename, string.Empty, ip_addr_default);
-                }
-                catch (Exception e)
-                {
-                    //p.WriteValue(driverID, ip_addr_profilename, ip_addr_default);
-                    ip_addr = ip_addr_default;
-                    tl.LogMessage("readSettings", "Wrong input string for [ip_addr]: [" + e.Message + "]");
-                }
-                try
-                {
-                    ip_port = p.GetValue(IP9212_switch_id, ip_port_profilename, string.Empty, ip_port_default);
-                }
-                catch (Exception e)
-                {
-                    //p.WriteValue(driverID, ip_port_profilename, ip_port_default);
-                    ip_port = ip_port_default;
-                    tl.LogMessage("readSettings", "Wrong input string for [ip_port]: [" + e.Message + "]");
-                }
-                try
-                {
-                    ip_login = p.GetValue(IP9212_switch_id, ip_login_profilename, string.Empty, ip_login_default);
-                }
-                catch (Exception e)
-                {
-                    //p.WriteValue(driverID, ip_login_profilename, ip_login_default);
-                    ip_login = ip_login_default;
-                    tl.LogMessage("readSettings", "Wrong input string for [ip_login]: [" + e.Message + "]");
-                }
-
-                try
-                {
-                    ip_pass = p.GetValue(IP9212_switch_id, ip_pass_profilename, string.Empty, ip_pass_default);
-                }
-                catch (Exception e)
-                {
-                    //p.WriteValue(driverID, ip_pass_profilename, ip_pass_default);
-                    ip_pass = ip_pass_default;
-                    tl.LogMessage("readSettings", "Wrong input string for [ip_pass]: [" + e.Message + "]");
-                }
-
-
-
-                try
-                {
-                    switch_roof_port = Convert.ToInt16(p.GetValue(IP9212_switch_id, switch_port_profilename, string.Empty, switch_port_default));
-                }
-                catch (Exception e)
-                {
-                    switch_roof_port = Convert.ToInt16(switch_port_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [switch_roof_port] is not a sequence of digits [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [switch_roof_port] is not a numeric value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-
-                try
-                {
-                    opened_sensor_port = Convert.ToInt16(p.GetValue(IP9212_switch_id, opened_port_profilename, string.Empty, opened_port_default));
-                }
-                catch (Exception e)
-                {
-                    opened_sensor_port = Convert.ToInt16(opened_port_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [opened_sensor_port] is not a sequence of digits [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [opened_sensor_port] is not a numeric value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    closed_sensor_port = Convert.ToInt16(p.GetValue(IP9212_switch_id, closed_port_profilename, string.Empty, closed_port_default));
-                }
-                catch (Exception e)
-                {
-                    closed_sensor_port = Convert.ToInt16(closed_port_default); 
-                    tl.LogMessage("Switch_readSettings", "Input string [closed_sensor_port] is not a sequence of digits [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [closed_sensor_port] is not a numeric value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-
-                try
-                {
-                    switch_port_state_type = Convert.ToBoolean(p.GetValue(IP9212_switch_id, switch_port_state_type_profilename, string.Empty, switch_port_state_type_default));
-                }
-                catch (Exception e)
-                {
-                    switch_port_state_type = Convert.ToBoolean(switch_port_state_type_default); 
-                    tl.LogMessage("Switch_readSettings", "Input string [switch_port_state_type] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [switch_port_state_type] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    opened_port_state_type = Convert.ToBoolean(p.GetValue(IP9212_switch_id, opened_port_state_type_profilename, string.Empty, opened_port_state_type_default));
-                }
-                catch (Exception e)
-                {
-                    opened_port_state_type = Convert.ToBoolean(opened_port_state_type_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [opened_port_state_type] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [opened_port_state_type] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    closed_port_state_type = Convert.ToBoolean(p.GetValue(IP9212_switch_id, closed_port_state_type_profilename, string.Empty, closed_port_state_type_default));
-                }
-                catch (Exception e)
-                {
-                    closed_port_state_type = Convert.ToBoolean(closed_port_state_type_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [closed_port_state_type] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [closed_port_state_type] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-
-                try
-                {
-                    telescope_power_port = Convert.ToInt16(p.GetValue(IP9212_switch_id, telescope_power_port_profilename, string.Empty, telescope_power_port_default));
-                }
-                catch (Exception e)
-                {
-                    telescope_power_port = Convert.ToInt16(telescope_power_port_default); 
-                    tl.LogMessage("Switch_readSettings", "Input string [telescope_power_port] is not a sequence of digits [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [telescope_power_port] is not a numeric value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    focuser_power_port = Convert.ToInt16(p.GetValue(IP9212_switch_id, focuser_power_port_profilename, string.Empty, focuser_power_port_default));
-                }
-                catch (Exception e)
-                {
-                    focuser_power_port = Convert.ToInt16(focuser_power_port_default); 
-                    tl.LogMessage("Switch_readSettings", "Input string [focuser_power_port] is not a sequence of digits [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [focuser_power_port] is not a numeric value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    heating_port = Convert.ToInt16(p.GetValue(IP9212_switch_id, heating_port_profilename, string.Empty, heating_port_default));
-                }
-                catch (Exception e)
-                {
-                    heating_port = Convert.ToInt16(heating_port_default); 
-                    tl.LogMessage("Switch_readSettings", "Input string [heating_port] is not a sequence of digits [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [heating_port] is not a numeric value";
-                    //if (debugFlag) { new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE); }
-                }
-                try
-                {
-                    roofpower_port = Convert.ToInt16(p.GetValue(IP9212_switch_id, roof_power_port_profilename, string.Empty, roof_power_port_default));
-                }
-                catch (Exception e)
-                {
-                    roofpower_port = Convert.ToInt16(roof_power_port_default); 
-                    tl.LogMessage("Switch_readSettings", "Input string [roofpower_port] is not a sequence of digits [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [roofpower_port] is not a numeric value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-
-                try
-                {
-                    telescope_power_port_state_type = Convert.ToBoolean(p.GetValue(IP9212_switch_id, telescope_power_port_state_type_profilename, string.Empty, telescope_power_port_state_type_default));
-                }
-                catch (Exception e)
-                {
-                    telescope_power_port_state_type = Convert.ToBoolean(telescope_power_port_state_type_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [telescope_power_port_state_type] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [telescope_power_port_state_type] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    focuser_power_port_state_type = Convert.ToBoolean(p.GetValue(IP9212_switch_id, focuser_power_port_state_type_profilename, string.Empty, focuser_power_port_state_type_default));
-                }
-                catch (Exception e)
-                {
-                    focuser_power_port_state_type = Convert.ToBoolean(focuser_power_port_state_type_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [focuser_power_port_state_type] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [focuser_power_port_state_type] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    heating_port_state_type = Convert.ToBoolean(p.GetValue(IP9212_switch_id, heating_port_state_type_profilename, string.Empty, heating_port_state_type_default));
-                }
-                catch (Exception e)
-                {
-                    heating_port_state_type = Convert.ToBoolean(heating_port_state_type_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [heating_port_state_type] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [heating_port_state_type] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-                try
-                {
-                    roofpower_port_state_type = Convert.ToBoolean(p.GetValue(IP9212_switch_id, roof_power_port_state_type_profilename, string.Empty, roof_power_port_state_type_default));
-                }
-                catch (Exception e)
-                {
-                    roofpower_port_state_type = Convert.ToBoolean(roof_power_port_state_type_default);
-                    tl.LogMessage("Switch_readSettings", "Input string [roofpower_port_state_type] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [roofpower_port_state_type] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-
-                try
-                {
-                    traceState = Convert.ToBoolean(p.GetValue(IP9212_switch_id, traceStateProfileName, string.Empty, traceStateDefault));
-                }
-                catch (Exception e)
-                {
-                    traceState = Convert.ToBoolean(traceStateDefault);
-                    tl.LogMessage("Switch_readSettings", "Input string [traceState] is not a boolean value [" + e.Message + "]");
-                    //ASCOM_ERROR_MESSAGE = "Switch_readSettings(): [traceState] is not a boolean value";
-                    //throw new ASCOM.InvalidValueException(ASCOM_ERROR_MESSAGE);
-                }
-
-            }
-            tl.LogMessage("Switch_readSettings", "Exit");
-        }
-
-        /// <summary>
-        /// Write settings to ASCOM profile storage
-        /// </summary>
-        public void writeSettings___()
-        {
-            tl.LogMessage("Switch_writeSettings", "Enter");
-            using (Profile p = new Profile())
-            {
-                p.DeviceType = "Switch";
-
-                p.WriteValue(IP9212_switch_id, ip_addr_profilename, ip_addr);
-                p.WriteValue(IP9212_switch_id, ip_port_profilename, ip_port);
-                p.WriteValue(IP9212_switch_id, ip_login_profilename, ip_login);
-                p.WriteValue(IP9212_switch_id, ip_pass_profilename, ip_pass);
-
-                p.WriteValue(IP9212_switch_id, switch_port_profilename, switch_roof_port.ToString());
-                p.WriteValue(IP9212_switch_id, opened_port_profilename, opened_sensor_port.ToString());
-                p.WriteValue(IP9212_switch_id, closed_port_profilename, closed_sensor_port.ToString());
-
-                p.WriteValue(IP9212_switch_id, telescope_power_port_profilename, telescope_power_port.ToString());
-                p.WriteValue(IP9212_switch_id, focuser_power_port_profilename, focuser_power_port.ToString());
-                p.WriteValue(IP9212_switch_id, heating_port_profilename, heating_port.ToString());
-                p.WriteValue(IP9212_switch_id, roof_power_port_profilename, roofpower_port.ToString());
-
-                p.WriteValue(IP9212_switch_id, telescope_power_port_state_type_profilename, telescope_power_port_state_type.ToString());
-                p.WriteValue(IP9212_switch_id, focuser_power_port_state_type_profilename, focuser_power_port_state_type.ToString());
-                p.WriteValue(IP9212_switch_id, heating_port_state_type_profilename, heating_port_state_type.ToString());
-                p.WriteValue(IP9212_switch_id, roof_power_port_state_type_profilename, roofpower_port_state_type.ToString());
-
-                p.WriteValue(IP9212_switch_id, traceStateProfileName, traceState.ToString());
-            }
-            tl.LogMessage("Switch_writeSettings", "Exit");
-        }
-
-        /// <summary>
-        /// Registering switch as ASCOM device
-        /// </summary>
-        public void RegisterSettings___()
-        {
-            using (var P = new ASCOM.Utilities.Profile())
-            {
-                P.DeviceType = "Switch";
-                P.Register(IP9212_switch_id, IP9212_switch_description);
-            }
-        }
-
-        /// <summary>
-        /// Tracing (logging) - 3 overloaded method
-        /// </summary>
-        public void Trace__(string st)
-        {
-            Console.WriteLine(st);
-            try
-            {
-                using (StreamWriter outfile = File.AppendText("d:/ascom_ip9212_logfile.log"))
-                {
-                    outfile.WriteLine("{0} {1}: {2}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(), st);
-                }
-            }
-            catch (IOException e)
-            {
-                Console.WriteLine("Write trace file error! [" + e.Message + "]");
-            }
-        }
-
-        public void Trace__(int st)
-        {
-            Console.WriteLine(st);
-        }
-
-        public void Trace__(string st, int[] arr_int)
-        {
-            string st_out = st;
-            foreach (int el in arr_int)
-            {
-                st_out = st_out + el + " ";
-            }
-
-            Console.WriteLine(st_out);
-
-            try
-            {
-                using (StreamWriter outfile = File.AppendText("d:/ascom_ip9212_logfile.log"))
-                {
-                    outfile.WriteLine("{0} {1}: {2}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(), st_out);
-                }
-
-            }
-            catch (IOException e)
-            {
-                Console.WriteLine("Write trace file error! [" + e.Message + "]");
-            }
-        }
-
-
-        /// <summary>
         /// Standart dispose method
         /// </summary>
         public void Dispose()
@@ -1261,56 +868,9 @@ namespace ASCOM.Vedrus_rolloffroof
             tl.Dispose();
             tl = null;
 
-            IP9212Semaphore.Dispose();
-            IP9212Semaphore = null;
+            DeviceSemaphore.Dispose();
+            DeviceSemaphore = null;
         }
-
-        #region DriverInformation
-        /// <summary>
-        /// Some properties for displaying driver version
-        /// </summary>
-        public string Description
-        {
-            get
-            {
-                tl.LogMessage("Switch_Description Get", IP9212_switch_description);
-                return IP9212_switch_description;
-            }
-        }
-
-        public static string DriverInfo
-        {
-            get
-            {
-                Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-                string driverInfo = IP9212_switch_description + ". Version: " + DriverVersion;
-                tl.LogMessage("Switch_DriverInfo Get", driverInfo);
-                return driverInfo;
-            }
-        }
-
-        public static string DriverVersion
-        {
-            get
-            {
-                Version version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
-                string driverVersion = String.Format(CultureInfo.InvariantCulture, "{0}.{1}", version.Major, version.Minor);
-                tl.LogMessage("Switch_DriverVersion Get", driverVersion);
-                return driverVersion;
-            }
-        }
-
-        public string Name
-        {
-            get
-            {
-                tl.LogMessage("Switch_Name Get", IP9212_switch_description_short);
-                return IP9212_switch_description_short;
-            }
-        }
-        
-        #endregion DriverInformation
-
 
     }
 }

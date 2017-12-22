@@ -14,7 +14,7 @@
 // Date			Who	Vers	Description
 // -----------	---	-----	-------------------------------------------------------
 // 20-08-2016	XXX	3.0.1	caching optimization +minor changes
-// 22-12-2017	XXX	0.0.1	initial alpha version based on IP9212 driver version
+// 22-12-2017	XXX	0.1.0	initial alpha version based on IP9212 driver version
 
 //
 #define Dome
@@ -35,11 +35,11 @@ using System.Collections;
 namespace ASCOM.Vedrus_rolloffroof
 {
     //
-    // Your driver's DeviceID is ASCOM.IP9212_rolloffroof2.Dome
+    // Your driver's DeviceID is ASCOM.Vedrus_rolloffroof.Dome
     //
-    // The Guid attribute sets the CLSID for ASCOM.IP9212_rolloffroof2.Dome
+    // The Guid attribute sets the CLSID for ASCOM.Vedrus_rolloffroof.Dome
     // The ClassInterface/None addribute prevents an empty interface called
-    // _IP9212_rolloffroof2 from being created and used as the [default] interface
+    //  from being created and used as the [default] interface
     //
     // TODO Replace the not implemented exceptions with code to implement the function or
     // throw the appropriate ASCOM exception.
@@ -160,7 +160,7 @@ namespace ASCOM.Vedrus_rolloffroof
         {
             // consider only showing the setup dialog if not connected
             // or call a different dialog if connected
-            if (IsConnected())
+            if (IsConnectedWrapper())
             {
                 System.Windows.Forms.MessageBox.Show("Already connected, disconnect to modify settings");
             }
@@ -281,7 +281,7 @@ namespace ASCOM.Vedrus_rolloffroof
             get
             {
                 tl.LogMessage("Connected(Get)","Enter");
-                bool isConnected_res = IsConnected();
+                bool isConnected_res = IsConnectedWrapper();
                 tl.LogMessage("Connected(Get)", "Exit. Returning status: " + isConnected_res.ToString());
                 return isConnected_res;
             }
@@ -298,7 +298,7 @@ namespace ASCOM.Vedrus_rolloffroof
                 }
 
                 tl.LogMessage("Connected(Set)", "Check current connection status");
-                bool curState = IsConnected(true);
+                bool curState = IsConnectedWrapper(true);
 
                 if (value && curState)
                 {
@@ -605,7 +605,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
                 //Check if connected
                 tl.LogMessage("ShutterStatus", "Check if device connected");
-                if (! IsConnected())
+                if (! IsConnectedWrapper())
                 {
                     tl.LogMessage("ShutterStatus", "ERROR. Can't return shutter status because not connected");
                     ERROR_MESSAGE = "Can't return shutter status because device is not connected";
@@ -778,11 +778,11 @@ namespace ASCOM.Vedrus_rolloffroof
         /// <summary>
         /// Returns true if there is a valid connection to the driver hardware
         /// </summary>
-        private bool IsConnected(bool forcedflag= false)
+        private bool IsConnectedWrapper(bool forcedflag= false)
         {
             tl.LogMessage("IsConnected", "Enter");
             // Check that the driver hardware connection exists and is connected to the hardware
-            connectedState = Hardware.IsConnected(forcedflag);
+            connectedState = Hardware.IsHardwareReachable(forcedflag);
 
             tl.LogMessage("IsConnected", "Exit. Returning status: " + connectedState.ToString());
 
@@ -795,7 +795,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// <param name="message"></param>
         private void CheckConnected(string message)
         {
-            if (!IsConnected())
+            if (!IsConnectedWrapper())
             {
                 throw new ASCOM.NotConnectedException(message);
             }

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace ASCOM.IP9212_rolloffroof2
+namespace ASCOM.Vedrus_rolloffroof
 {
     public partial class TestASCOM2 : Form
     {
