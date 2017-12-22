@@ -21,7 +21,7 @@ namespace IP9212_emul
         shutterError = 4 // Dome shutter status error  
     }
 
-    class IP9212device_emul
+    class Vedrus_dome_emul
     {
         public bool debugf = false;
 
@@ -41,7 +41,7 @@ namespace IP9212_emul
         Dictionary<string, int> OutputState = new Dictionary<string, int>();
         private int MOVING_TIME=10;
 
-        public IP9212device_emul()
+        public Vedrus_dome_emul()
         {
             //init device
             InputState.Add("1", 0);

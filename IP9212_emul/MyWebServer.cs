@@ -14,7 +14,7 @@ namespace IP9212_emul
         private TcpListener myListener;
         private int port = 5050;  // Select any free port you wish 
 
-        internal IP9212device_emul Hardware;
+        internal Vedrus_dome_emul Hardware;
 
         public MyWebServer()
         {
@@ -29,7 +29,7 @@ namespace IP9212_emul
                 Thread th = new Thread(new ThreadStart(StartListen));
                 th.Start();
 
-                Hardware = new IP9212device_emul();
+                Hardware = new Vedrus_dome_emul();
 
             }
             catch (Exception e)

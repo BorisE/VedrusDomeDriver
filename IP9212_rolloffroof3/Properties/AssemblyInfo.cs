@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 //
 // TODO - Add your authorship information here
-[assembly: AssemblyTitle("ASCOM.IP9212_rolloffroof3.Dome")]
+[assembly: AssemblyTitle("ASCOM.Vedrus_rolloffroof.Dome")]
 [assembly: AssemblyDescription("ASCOM Dome driver for rolloffroof on IP9212")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("astromania.info")]
@@ -36,4 +36,4 @@ using System.Runtime.InteropServices;
 //
 // TODO - Set your driver's version here
 [assembly: AssemblyVersion("6.0.*")]
-[assembly: AssemblyFileVersion("3.0.3")]
+[assembly: AssemblyFileVersion("0.0.1")]

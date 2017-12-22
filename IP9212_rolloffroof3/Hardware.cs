@@ -12,7 +12,7 @@ using ASCOM;
 using ASCOM.Utilities;
 using ASCOM.DeviceInterface;
 
-namespace ASCOM.IP9212_rolloffroof3
+namespace ASCOM.Vedrus_rolloffroof
 {
     public class MyWebClient : WebClient
     {
@@ -31,7 +31,7 @@ namespace ASCOM.IP9212_rolloffroof3
     /// <summary>
     /// Class for working with ip9212 device
     /// </summary>
-    public class IP9212_switch_class
+    public class Hardware_class
     {
         Dome DomeDriverLnk;
 
@@ -141,7 +141,7 @@ namespace ASCOM.IP9212_rolloffroof3
         /// <summary>
         /// Constructor of IP9212_switch_class
         /// </summary>
-        public IP9212_switch_class(Dome DomeDriver_ext)
+        public Hardware_class(Dome DomeDriver_ext)
         {
             DomeDriverLnk = DomeDriver_ext;
 

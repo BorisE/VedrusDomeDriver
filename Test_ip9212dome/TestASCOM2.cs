@@ -12,7 +12,7 @@ namespace ASCOM.IP9212_rolloffroof2
 {
     public partial class TestASCOM2 : Form
     {
-        private string DefaultDriverId = "ASCOM.IP9212_rolloffroof3.Dome";
+        private string DefaultDriverId = "ASCOM.Vedrus_rolloffroof.Dome";
         public string DriverId;
 
         private ASCOM.DriverAccess.Dome driver;

@@ -1,4 +1,4 @@
-namespace ASCOM.IP9212_rolloffroof3
+namespace ASCOM.Vedrus_rolloffroof
 {
     partial class SetupDialogForm
     {
@@ -347,7 +347,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // picAstromania
             // 
             this.picAstromania.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.picAstromania.Image = global::ASCOM.IP9212_rolloffroof3.Properties.Resources.logo_48_blue;
+            this.picAstromania.Image = global::ASCOM.Vedrus_rolloffroof.Properties.Resources.logo_48_blue;
             this.picAstromania.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.picAstromania.Location = new System.Drawing.Point(9, 23);
             this.picAstromania.Name = "picAstromania";
@@ -360,7 +360,7 @@ namespace ASCOM.IP9212_rolloffroof3
             // pictureBox1
             // 
             this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.pictureBox1.Image = global::ASCOM.IP9212_rolloffroof3.Properties.Resources.ASCOM;
+            this.pictureBox1.Image = global::ASCOM.Vedrus_rolloffroof.Properties.Resources.ASCOM;
             this.pictureBox1.Location = new System.Drawing.Point(9, 93);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(48, 56);
