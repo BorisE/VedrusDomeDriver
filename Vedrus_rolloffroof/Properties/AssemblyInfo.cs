@@ -8,11 +8,11 @@ using System.Runtime.InteropServices;
 //
 // TODO - Add your authorship information here
 [assembly: AssemblyTitle("ASCOM.Vedrus_rolloffroof.Dome")]
-[assembly: AssemblyDescription("ASCOM Dome driver for rolloffroof on IP9212")]
+[assembly: AssemblyDescription("ASCOM Dome driver for rolloffroof for Vedrus observatory http://astrohostel.ru")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("astromania.info")]
-[assembly: AssemblyProduct("ASCOM Dome driver for rolloffroof on IP9212")]
-[assembly: AssemblyCopyright("Copyright © 2013 by Boris Emchenko http://astromania.info")]
+[assembly: AssemblyProduct("ASCOM Dome driver for rolloffroof for Vedrus observatory http://astrohostel.ru")]
+[assembly: AssemblyCopyright("Copyright © 2017 by Boris Emchenko")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -22,7 +22,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("05FE1498-3E5E-40ED-8256-F23ED2F06EB2")]
+[assembly: Guid("6614E2AC-5217-4C50-B898-7C2C251A9F0F")]
 
 // Version information for an assembly consists of the following four values:
 //

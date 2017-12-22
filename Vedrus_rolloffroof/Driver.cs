@@ -48,7 +48,7 @@ namespace ASCOM.Vedrus_rolloffroof
     /// <summary>
     /// ASCOM Dome Driver for Vedrus_rolloffroof.
     /// </summary>
-    [Guid("C9ACEBB9-0391-4EB6-9D15-5483FDE4F205")]
+    [Guid("7A5E7B1F-4E93-4EE1-86C7-1E18EB797297")]
     [ClassInterface(ClassInterfaceType.None)]
     public class Dome : IDomeV2
     {
@@ -60,9 +60,9 @@ namespace ASCOM.Vedrus_rolloffroof
         /// <summary>
         /// Driver description that displays in the ASCOM Chooser.
         /// </summary>
-        private static string driverDescription = "ASCOM Dome driver for roll-off roof controlled by Aviosys IP9212. Written by Boris Emchenko http://astromania.info";
-        private static string driverDescriptionShort = "Roll-off roof on IP9212v3";
-        private static string driverVersion = "3.0.1";
+        private static string driverDescription = "ASCOM Dome driver for roll-off roof for Astrohostel.ru. Written by Boris Emchenko http://astromania.info";
+        private static string driverDescriptionShort = "Roll-off roof for Astrohostel.ru";
+        private static string driverVersion = "1.0.0";
 
         internal static string traceStateProfileName = "Trace Level";
         internal static string traceStateDefault = "true";
@@ -121,7 +121,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// </summary>
         public Dome()
         {
-            tl = new TraceLogger("", "IP9212_rolloffroof2");
+            tl = new TraceLogger("", "Vedrus_rolloffroof");
             #if DEBUG
             tl.Enabled = true; //at least for debugging - log will be always created no matter the value of traceState
             tl.LogMessage("Dome", "Init traceloger (debug mode)");

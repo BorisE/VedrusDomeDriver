@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vedrus_rolloffroof", "IP9212_rolloffroof3\Vedrus_rolloffroof.csproj", "{64308775-BD4A-469C-BCAB-3ED830B811AF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vedrus_rolloffroof", "Vedrus_rolloffroof\Vedrus_rolloffroof.csproj", "{64308775-BD4A-469C-BCAB-3ED830B811AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_dome", "Test_ip9212dome\Test_dome.csproj", "{8E8D406C-1838-4914-867D-AB602D0EAF3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test_dome", "Test_dome\Test_dome.csproj", "{8E8D406C-1838-4914-867D-AB602D0EAF3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vedrus_dome_emul", "IP9212_emul\Vedrus_dome_emul.csproj", "{AA4DC424-C86D-4021-9C6E-F2EADC410698}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vedrus_dome_emul", "Vedrus_dome_emul\Vedrus_dome_emul.csproj", "{AA4DC424-C86D-4021-9C6E-F2EADC410698}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
