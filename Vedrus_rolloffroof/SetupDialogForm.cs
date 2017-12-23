@@ -36,7 +36,9 @@ namespace ASCOM.Vedrus_rolloffroof
             login.Text = Hardware_class.ip_login;
             pass.Text = Hardware_class.ip_pass;
 
-            chkTrace.Checked = Hardware_class.traceState;
+            chkTrace.Checked = DomeDriverLnk.traceState;
+            chkDebugFlag.Checked = HardwareLnk.debugFlag;
+
             txtNetworkTimeout.Text = Convert.ToInt32(MyWebClient.NETWORK_TIMEOUT / 1000).ToString();
             txtCacheConnect.Text = Hardware_class.CACHE_CHECKCONNECTED_INTERVAL.ToString();
             txtCacheRead.Text = Hardware_class.CACHE_SHUTTERSTATUS_INTERVAL_NORMAL.ToString();
@@ -63,19 +65,6 @@ namespace ASCOM.Vedrus_rolloffroof
             cmbLang.DisplayMember = "NativeName";
             cmbLang.ValueMember = "Name";
             cmbLang.SelectedValue = Hardware_class.currentLang;
-
-            
-
-            opened_port.Text = Hardware_class.opened_sensor_port.ToString();
-            opened_port_state_type.Checked = Hardware_class.opened_port_state_type;
-
-            closedstateport.Text = Hardware_class.closed_sensor_port.ToString();
-            closed_port_state_type.Checked = Hardware_class.closed_port_state_type;
-
-            switchport.Text = Hardware_class.switch_roof_port.ToString();
-            switch_port_type.Checked = Hardware_class.switch_port_state_type;
-
-            chkTrace.Checked = Dome.traceState;
         }
 
 
@@ -90,45 +79,19 @@ namespace ASCOM.Vedrus_rolloffroof
 
             //Base settings
             #region Base settings
-            try
-            {
-                Hardware_class.opened_sensor_port = Convert.ToInt16(opened_port.Text);
-            }
-            catch (Exception e)
-            {
-                Hardware_class.opened_sensor_port = Convert.ToInt16(Hardware_class.opened_port_default);
-                Hardware_class.tl.LogMessage("SetupDialog_cmdOK", "Input string [opened_sensor_port] is not a sequence of digits [" + e.Message + "]");
-            }
 
-            try
-            {
-                Hardware_class.closed_sensor_port = Convert.ToInt16(closedstateport.Text);
-            }
-            catch (Exception e)
-            {
-                Hardware_class.closed_sensor_port = Convert.ToInt16(Hardware_class.closed_port_default);
-                Hardware_class.tl.LogMessage("SetupDialog_cmdOK", "Input string [closed_sensor_port] is not a sequence of digits [" + e.Message + "]");
-            }
+            //deleted for this verison
 
-            try
-            {
-                Hardware_class.switch_roof_port = Convert.ToInt16(switchport.Text);
-            }
-            catch (Exception e)
-            {
-                Hardware_class.switch_roof_port = Convert.ToInt16(Hardware_class.switch_port_default);
-                Hardware_class.tl.LogMessage("SetupDialog_cmdOK", "Input string [switch_roof_port] is not a sequence of digits [" + e.Message + "]");
-            }
-
-            Hardware_class.opened_port_state_type = opened_port_state_type.Checked;
-            Hardware_class.closed_port_state_type = closed_port_state_type.Checked;
-            Hardware_class.switch_port_state_type = switch_port_type.Checked;
             #endregion
 
             //Advanced settings
             #region Advanced settings
 
-            Hardware_class.traceState = chkTrace.Checked;
+            DomeDriverLnk.traceState = chkTrace.Checked;
+            DomeDriverLnk.debugState = chkDebugFlag.Checked;
+
+            HardwareLnk.debugFlag = chkDebugFlag.Checked; //И сразу изменить настрйоки драйвера
+
 
             try
             {
@@ -186,11 +149,11 @@ namespace ASCOM.Vedrus_rolloffroof
             {
                 if (Thread.CurrentThread.CurrentUICulture.Name == "ru-RU")
                 {
-                    System.Diagnostics.Process.Start("http://www.aviosys.ru/ipp9212d.htm");
+                    System.Diagnostics.Process.Start("http://astro.milantiev.com");
                 }
                 else
                 {
-                    System.Diagnostics.Process.Start("http://www.aviosys.com/9212delux.html");
+                    System.Diagnostics.Process.Start("http://astro.milantiev.com");
                 }
             }
             catch (System.ComponentModel.Win32Exception noBrowser)

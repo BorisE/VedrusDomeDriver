@@ -6,6 +6,13 @@ ASCOM Driver for roll-off roof controling by Raspberry Pi device. It receives co
 
 Change log
 
+1.0.1 23-12-2017
+- Special for MaximDL - CanSetShutter=true, because in other case it doesn't display shutter status at all
+
+1.0.0 23-12-2017
+
+- First working release. Driver is readonly
+
 0.1.0 23-12-2017
 - Initial edit, based on AvioSys IP9212 Dome Driver
 

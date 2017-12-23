@@ -15,6 +15,8 @@
 // -----------	---	-----	-------------------------------------------------------
 // 20-08-2016	XXX	3.0.1	caching optimization +minor changes
 // 22-12-2017	XXX	0.1.0	initial alpha version based on IP9212 driver version
+// 23-12-2017	XXX	1.0.0	first working release
+// 23-12-2017	XXX	1.0.1	fix for maxim
 
 //
 #define Dome
@@ -65,7 +67,10 @@ namespace ASCOM.Vedrus_rolloffroof
         private static string driverVersion = "1.0.0";
 
         internal static string traceStateProfileName = "Trace Level";
-        internal static string traceStateDefault = "true";
+        internal static string traceStateDefault = "false";
+
+        internal static string debugStateProfileName = "Debug flag";
+        internal static string debugStateDefault = "false";
 
         /// <summary>
         /// Settings fields
@@ -73,7 +78,8 @@ namespace ASCOM.Vedrus_rolloffroof
         //public string ip_addr, ip_port, ip_login, ip_pass;
         //public string switch_port, opened_port, closed_port;
         //public string switch_port_state_type, opened_port_state_type, closed_port_state_type;
-        internal static bool traceState;
+        internal bool traceState;
+        internal bool debugState;
 
         /// <summary>
         /// Private variable to hold the connected state
@@ -99,7 +105,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
         //error message
         private string ERROR_MESSAGE = "";
-        
+
         /// <summary>
         /// Private variable to hold an ASCOM Utilities object
         /// </summary>
@@ -113,7 +119,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// <summary>
         /// Private variable to hold the trace logger object (creates a diagnostic log file with information that you specify)
         /// </summary>
-        internal TraceLogger tl;
+        internal static TraceLogger tl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Vedrus_rolloffroof"/> class.
@@ -135,6 +141,7 @@ namespace ASCOM.Vedrus_rolloffroof
             tl.Enabled = traceState;
             tl.LogMessage("Dome", "Starting initialisation");
 
+            Hardware.debugFlag = debugState;
             connectedState = false; // Initialise connected to false
          
             //utilities = new Util(); //Initialise util object
@@ -160,11 +167,11 @@ namespace ASCOM.Vedrus_rolloffroof
         {
             // consider only showing the setup dialog if not connected
             // or call a different dialog if connected
-            if (IsConnectedWrapper())
-            {
-                System.Windows.Forms.MessageBox.Show("Already connected, disconnect to modify settings");
-            }
-            else
+            //if (IsConnectedWrapper())
+            //{
+            //    System.Windows.Forms.MessageBox.Show("Already connected, disconnect to modify settings");
+            //}
+            //else
             {
                 using (SetupDialogForm F = new SetupDialogForm(this,Hardware))
                 {
@@ -189,8 +196,13 @@ namespace ASCOM.Vedrus_rolloffroof
         {
             get
             {
+                ArrayList list = new ArrayList();
+                list.Add("IPAddress");
+                list.Add("GetCacheParameter"); //CacheCheckConnection, CacheSensorState, CacheSensorState_reduced
+                list.Add("GetTimeout");
+
                 tl.LogMessage("SupportedActions Get", "Returning empty arraylist");
-                return new ArrayList() { "IPAddress", "GetCacheParameter", "GetTimeout" };
+                return list;
             }
         }
 
@@ -228,6 +240,7 @@ namespace ASCOM.Vedrus_rolloffroof
             }
             else
             {
+                LogMessage("", "Action {0}, parameters {1} not implemented", actionName, actionParameters);
                 throw new ASCOM.ActionNotImplementedException("Action " + actionName + " is not implemented by this driver");
             }
 
@@ -317,7 +330,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
                 if (value)
                 {
-                    tl.LogMessage("Connected(Set)", "Connecting to IP9212...");
+                    tl.LogMessage("Connected(Set)", "Connecting to Device...");
 
                     Hardware.Connect();
                     connectedState = Hardware.hardware_connected_flag;
@@ -327,13 +340,13 @@ namespace ASCOM.Vedrus_rolloffroof
                         //if driver couldn't connect to ip9212 then raise an exception. 
                         // In case of using with MaximDL it willn't display it but instead try to set connection to false. 
                         // So I put there an workaround...
-                        ERROR_MESSAGE = "Couldn't connect to IP9212 control device on [" + Hardware_class.ip_addr + "]";
+                        ERROR_MESSAGE = "Couldn't connect to Device on [" + Hardware_class.ip_addr + "]";
                         throw new ASCOM.DriverException(ERROR_MESSAGE);
                     }
                 }
                 else
                 {
-                    tl.LogMessage("Connected(Set)", "Disconnecting from IP9212...");
+                    tl.LogMessage("Connected(Set)", "Disconnecting from Device...");
 
                     Hardware.Disconnect();
                     connectedState = Hardware.hardware_connected_flag;
@@ -489,7 +502,7 @@ namespace ASCOM.Vedrus_rolloffroof
             get
             {
                 tl.LogMessage("CanSetShutter Get", true.ToString());
-                return true;
+                return true; //потому что, если поставить в false, то Максим не выводит статус
             }
         }
 
@@ -518,22 +531,30 @@ namespace ASCOM.Vedrus_rolloffroof
 
             //Reread sensor data
             Hardware.getInputStatus();
+            //read shutter status vars
+            ShutterState dummy = ShutterStatus;
 
             //if (!Hardware.closed_shutter_flag && Hardware.opened_shutter_flag)
             if (!Hardware.closed_shutter_flag)
             {
                 //Press switch
                 tl.LogMessage("CloseShutter", "Opened, pressing switch");
-                Hardware.pressRoofSwitch();
 
                 //clear shutter status cache
                 lastShutterStatusCheck = EXPIRED_CACHE;
-                
-                //set moving state
-                Hardware.closed_shutter_flag = false;
-                Hardware.opened_shutter_flag = false;
-                tl.LogMessage("CloseShutter", "Moving was initiated");
-            }
+
+                if (Hardware.pressRoofSwitch())
+                {
+                    //set moving state
+                    Hardware.closed_shutter_flag = false;
+                    Hardware.opened_shutter_flag = false;
+                    tl.LogMessage("CloseShutter", "Moving was initiated");
+                }
+                else
+                {
+                    tl.LogMessage("OpenShutter", "Can't press switch");
+                }
+        }
             else if (Hardware.closed_shutter_flag)
             {
                 tl.LogMessage("CloseShutter", "Skipping because already closed");
@@ -555,20 +576,29 @@ namespace ASCOM.Vedrus_rolloffroof
             //Reread sensor data no matter of cache
             Hardware.getInputStatus();
 
+            //read shutter status vars
+            ShutterState dummy = ShutterStatus;
+
             //if (Hardware.closed_shutter_flag && !Hardware.opened_shutter_flag)
             if (!Hardware.opened_shutter_flag)
             {
                 //Press switch
                 tl.LogMessage("OpenShutter", "Not opened, pressing switch");
-                Hardware.pressRoofSwitch();
 
                 //clear shutter status cache
                 lastShutterStatusCheck = EXPIRED_CACHE;
 
-                //set moving state
-                Hardware.closed_shutter_flag = false;
-                Hardware.opened_shutter_flag = false;
-                tl.LogMessage("OpenShutter", "Moving was initiated");
+                if (Hardware.pressRoofSwitch())
+                { 
+                    //set moving state
+                    Hardware.closed_shutter_flag = false;
+                    Hardware.opened_shutter_flag = false;
+                    tl.LogMessage("OpenShutter", "Moving was initiated");
+                }
+                else
+                {
+                    tl.LogMessage("OpenShutter", "Can't press switch");
+                }
             }
             else if (Hardware.closed_shutter_flag)
             {
@@ -612,9 +642,8 @@ namespace ASCOM.Vedrus_rolloffroof
                     throw new ASCOM.DriverException(ERROR_MESSAGE);
                 }
 
-               
                 // Read input status
-                Hardware.opened_shutter_flag=Hardware.OpenedSensorState();
+                Hardware.opened_shutter_flag=Hardware.OpenedSensorState(); //dummmy sensor
                 Hardware.closed_shutter_flag=Hardware.ClosedSensorState();
 
                 //Calculate shutter status
@@ -971,6 +1000,15 @@ namespace ASCOM.Vedrus_rolloffroof
                     traceState = Convert.ToBoolean(traceStateDefault);
                     tl.LogMessage("readProfile", "Input string [traceState] is not a boolean value [" + e.Message + "]");
                 }
+                try
+                {
+                    debugState = Convert.ToBoolean(p.GetValue(driverID, debugStateProfileName, string.Empty, debugStateDefault));
+                }
+                catch (Exception e)
+                {
+                    debugState = Convert.ToBoolean(debugStateDefault);
+                    tl.LogMessage("readProfile", "Input string [debugState] is not a boolean value [" + e.Message + "]");
+                }
                 #endregion
 
             }
@@ -991,6 +1029,7 @@ namespace ASCOM.Vedrus_rolloffroof
             {
                 driverProfile.DeviceType = "Dome";
                 driverProfile.WriteValue(driverID, traceStateProfileName, traceState.ToString());
+                driverProfile.WriteValue(driverID, debugStateProfileName, debugState.ToString());
 
                 driverProfile.WriteValue(driverID, Hardware_class.ip_addr_profilename, Hardware_class.ip_addr);
                 driverProfile.WriteValue(driverID, Hardware_class.ip_port_profilename, Hardware_class.ip_port);
@@ -1014,6 +1053,17 @@ namespace ASCOM.Vedrus_rolloffroof
             tl.LogMessage("WriteProfile", "Exit");
         }
 
+        /// <summary>
+        /// Log helper function that takes formatted strings and arguments
+        /// </summary>
+        /// <param name="identifier"></param>
+        /// <param name="message"></param>
+        /// <param name="args"></param>
+        internal static void LogMessage(string identifier, string message, params object[] args)
+        {
+            var msg = string.Format(message, args);
+            tl.LogMessage(identifier, msg);
+        }
         #endregion
 
     }

@@ -111,7 +111,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="changelog.txt" />
+    <Content Include="changelog.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Resources\logo_48_blue.png" />
     <None Include="app.config" />
     <None Include="ASCOM.png" />

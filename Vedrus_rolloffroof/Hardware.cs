@@ -35,13 +35,13 @@ namespace ASCOM.Vedrus_rolloffroof
     {
         Dome DomeDriverLnk;
 
-        internal bool debugFlag = true;
+        public bool debugFlag = false;
 
         //Settings
         #region Settings variables
         public static string ip_addr, ip_port, ip_login, ip_pass;
         internal static string ip_addr_profilename = "IP address", ip_port_profilename = "Port number", ip_login_profilename = "login", ip_pass_profilename = "password";
-        internal static string ip_addr_default = "192.168.1.90", ip_port_default = "80", ip_login_default = "admin", ip_pass_default = "12345678";
+        internal static string ip_addr_default = "192.168.2.199", ip_port_default = "80", ip_login_default = "admin", ip_pass_default = "0000";
 
         internal static int switch_roof_port, opened_sensor_port, closed_sensor_port;
         internal static string switch_port_profilename = "Roof switch", opened_port_profilename = "Roof opened state port", closed_port_profilename = "Roof closed state port";
@@ -56,7 +56,7 @@ namespace ASCOM.Vedrus_rolloffroof
 
         //public static string ip_addr, ip_port, ip_login, ip_pass;
 
-        internal static bool traceState;
+        //internal static bool traceState;
         internal static string traceStateProfileName = "Trace Level";
         internal static string traceStateDefault = "true";
 
@@ -141,7 +141,7 @@ namespace ASCOM.Vedrus_rolloffroof
         {
             DomeDriverLnk = DomeDriver_ext;
 
-            tl = DomeDriverLnk.tl; //the same logger with Dome Driver
+            tl = Dome.tl; //the same logger with Dome Driver
 
             //tl.Enabled = true; //default value before reading settings
 
@@ -156,7 +156,10 @@ namespace ASCOM.Vedrus_rolloffroof
             tl.LogMessage("Switch_constructor", "Exit");
         }
 
-        // if we need to ESTABLISH CONNECTION
+
+        /// <summary>
+        /// if we need to ESTABLISH CONNECTION
+        /// </summary>
         public void Connect()
         {
             tl.LogMessage("Switch_Connect", "Enter");
@@ -182,15 +185,18 @@ namespace ASCOM.Vedrus_rolloffroof
             }
             else
             {
-                tl.LogMessage("Switch_Connect", "Couldn't connect to IP9212 control device on [" + ip_addr + "]");
-                ASCOM_ERROR_MESSAGE = "Couldn't connect to IP9212 control device on [" + ip_addr + "]";
+                tl.LogMessage("Switch_Connect", "Couldn't connect to Device on [" + ip_addr + "]");
+                ASCOM_ERROR_MESSAGE = "Couldn't connect to Device on [" + ip_addr + "]";
                 //throw new ASCOM.DriverException(ASCOM_ERROR_MESSAGE);
 
             }
             tl.LogMessage("Switch_Connect", "Exit");
         }
 
-        // if we need to ESTABLISH CONNECTION
+
+        /// <summary>
+        /// if we need to ESTABLISH CONNECTION 
+        /// </summary>
         public void Disconnect()
         {
             tl.LogMessage("Switch_Disconnect", "Enter");
@@ -211,6 +217,7 @@ namespace ASCOM.Vedrus_rolloffroof
             hardware_connected_flag = false;
             tl.LogMessage("Switch_Disconnect", "Exit");
         }
+
 
         /// <summary>
         /// Check if device is available
@@ -263,7 +270,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// Check the availability of IP server by starting async read from input sensors. Result handeled to checkLink_DownloadCompleted()
         /// </summary>
         /// <returns>Nothing</returns> 
-        public void checkLink_async()
+        public void checkLink_async_____()
         {
             tl.LogMessage("Switch_CheckLink_async", "enter");
 
@@ -437,7 +444,7 @@ namespace ASCOM.Vedrus_rolloffroof
                 //wait
                 //Thread.Sleep(1000);
 
-                if (s.Length == 1 )
+                if (s.Length > 0 && s.Length <= 3) //3 for \r symbol and etc
                 {
                     hardware_connected_flag = true;
                     tl.LogMessage("Switch_getInputStatus", "Downloaded data is ok");
@@ -477,6 +484,11 @@ namespace ASCOM.Vedrus_rolloffroof
         public int parseInputData(string s)
         {
             tl.LogMessage("Switch_parseInputData", "Enter");
+
+            s = s.Trim(); //trim all symbols
+
+            tl.LogMessage("parseInputData", "Trimed str: " + s);
+
             // Parse data
             try
             {
@@ -707,39 +719,11 @@ namespace ASCOM.Vedrus_rolloffroof
         {
             tl.LogMessage("Switch_pressRoofSwitch", "Enter");
 
-            //Get config data
-            int int_switch_port_state_type = (switch_port_state_type ? 0 : 1);
-            int int_inverted_switch_port_state_type = (switch_port_state_type ? 1 : 0);
-
-            //read output states
-            int[] outStates = getOutputStatus();
-            int curPortState = outStates[switch_roof_port];
-            tl.LogMessage("Switch_pressRoofSwitch", "Using port " + switch_roof_port.ToString() + ", type: " + switch_port_state_type.ToString());
-
-            //check - what is the state of switch port?
-            if (outStates[switch_roof_port] != int_switch_port_state_type)
-            {
-                //return to normal value
-                tl.LogMessage("Switch_pressRoofSwitch", "first need to return switch to normal state");
-                setOutputStatus(switch_roof_port, int_switch_port_state_type);
-            }
-
-            //press switch
-            tl.LogMessage("Switch_pressRoofSwitch", "Pressing");
-            setOutputStatus(switch_roof_port, int_inverted_switch_port_state_type);
-
-            //wait
-            Thread.Sleep(1000);
-            Thread.Sleep(1000);
-            Thread.Sleep(1000);
-
-            //release switch
-            tl.LogMessage("Switch_pressRoofSwitch", "Releasing");
-            setOutputStatus(switch_roof_port, int_switch_port_state_type);
+            tl.LogMessage("Switch_pressRoofSwitch", "Dummy action, can't press switch");
 
 
             tl.LogMessage("Switch_pressRoofSwitch", "Exit");
-            return true;
+            return false;
         }
 
         /// <summary>

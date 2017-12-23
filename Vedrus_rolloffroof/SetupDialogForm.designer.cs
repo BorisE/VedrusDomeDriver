@@ -28,6 +28,7 @@ namespace ASCOM.Vedrus_rolloffroof
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.cmdOK = new System.Windows.Forms.Button();
             this.cmdCancel = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
@@ -38,16 +39,6 @@ namespace ASCOM.Vedrus_rolloffroof
             this.pass = new System.Windows.Forms.TextBox();
             this.login = new System.Windows.Forms.TextBox();
             this.ipaddr = new System.Windows.Forms.TextBox();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.closed_port_state_type = new System.Windows.Forms.CheckBox();
-            this.opened_port_state_type = new System.Windows.Forms.CheckBox();
-            this.switch_port_type = new System.Windows.Forms.CheckBox();
-            this.label8 = new System.Windows.Forms.Label();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
-            this.closedstateport = new System.Windows.Forms.TextBox();
-            this.opened_port = new System.Windows.Forms.TextBox();
-            this.switchport = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
             this.lblDriverInfo = new System.Windows.Forms.Label();
@@ -72,7 +63,8 @@ namespace ASCOM.Vedrus_rolloffroof
             this.txtCacheRead = new System.Windows.Forms.TextBox();
             this.txtCacheConnect = new System.Windows.Forms.TextBox();
             this.chkTrace = new System.Windows.Forms.CheckBox();
-            this.groupBox2.SuspendLayout();
+            this.chkDebugFlag = new System.Windows.Forms.CheckBox();
+            this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picAstromania)).BeginInit();
@@ -83,9 +75,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // cmdOK
             // 
             this.cmdOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.cmdOK.Location = new System.Drawing.Point(262, 199);
+            this.cmdOK.Location = new System.Drawing.Point(521, 346);
+            this.cmdOK.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cmdOK.Name = "cmdOK";
-            this.cmdOK.Size = new System.Drawing.Size(83, 24);
+            this.cmdOK.Size = new System.Drawing.Size(159, 49);
             this.cmdOK.TabIndex = 4;
             this.cmdOK.Text = "OK";
             this.cmdOK.UseVisualStyleBackColor = true;
@@ -94,9 +87,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // cmdCancel
             // 
             this.cmdCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cmdCancel.Location = new System.Drawing.Point(354, 199);
+            this.cmdCancel.Location = new System.Drawing.Point(708, 346);
+            this.cmdCancel.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cmdCancel.Name = "cmdCancel";
-            this.cmdCancel.Size = new System.Drawing.Size(80, 25);
+            this.cmdCancel.Size = new System.Drawing.Size(152, 48);
             this.cmdCancel.TabIndex = 5;
             this.cmdCancel.Text = "Cancel";
             this.cmdCancel.UseVisualStyleBackColor = true;
@@ -105,167 +99,79 @@ namespace ASCOM.Vedrus_rolloffroof
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(143, 24);
+            this.label3.Location = new System.Drawing.Point(214, 37);
+            this.label3.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(10, 13);
+            this.label3.Size = new System.Drawing.Size(13, 20);
             this.label3.TabIndex = 5;
             this.label3.Text = ":";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(1, 76);
+            this.label5.Location = new System.Drawing.Point(2, 117);
+            this.label5.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(30, 13);
+            this.label5.Size = new System.Drawing.Size(44, 20);
             this.label5.TabIndex = 13;
             this.label5.Text = "Pass";
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(1, 50);
+            this.label4.Location = new System.Drawing.Point(2, 77);
+            this.label4.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(33, 13);
+            this.label4.Size = new System.Drawing.Size(48, 20);
             this.label4.TabIndex = 14;
             this.label4.Text = "Login";
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(1, 24);
+            this.label2.Location = new System.Drawing.Point(2, 37);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(41, 13);
+            this.label2.Size = new System.Drawing.Size(60, 20);
             this.label2.TabIndex = 15;
             this.label2.Text = "IP addr";
             // 
             // port
             // 
-            this.port.Location = new System.Drawing.Point(156, 21);
+            this.port.Location = new System.Drawing.Point(234, 32);
+            this.port.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.port.Name = "port";
-            this.port.Size = new System.Drawing.Size(38, 20);
+            this.port.Size = new System.Drawing.Size(55, 26);
             this.port.TabIndex = 6;
             // 
             // pass
             // 
-            this.pass.Location = new System.Drawing.Point(48, 73);
+            this.pass.Enabled = false;
+            this.pass.Location = new System.Drawing.Point(72, 112);
+            this.pass.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pass.MaxLength = 14;
             this.pass.Multiline = true;
             this.pass.Name = "pass";
             this.pass.PasswordChar = '*';
-            this.pass.Size = new System.Drawing.Size(92, 20);
+            this.pass.Size = new System.Drawing.Size(136, 29);
             this.pass.TabIndex = 3;
             // 
             // login
             // 
-            this.login.Location = new System.Drawing.Point(48, 47);
+            this.login.Enabled = false;
+            this.login.Location = new System.Drawing.Point(72, 72);
+            this.login.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.login.Name = "login";
-            this.login.Size = new System.Drawing.Size(92, 20);
+            this.login.Size = new System.Drawing.Size(136, 26);
             this.login.TabIndex = 2;
             // 
             // ipaddr
             // 
-            this.ipaddr.Location = new System.Drawing.Point(48, 21);
+            this.ipaddr.Location = new System.Drawing.Point(72, 32);
+            this.ipaddr.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.ipaddr.Name = "ipaddr";
-            this.ipaddr.Size = new System.Drawing.Size(92, 20);
+            this.ipaddr.Size = new System.Drawing.Size(136, 26);
             this.ipaddr.TabIndex = 0;
-            // 
-            // groupBox2
-            // 
-            this.groupBox2.Controls.Add(this.closed_port_state_type);
-            this.groupBox2.Controls.Add(this.opened_port_state_type);
-            this.groupBox2.Controls.Add(this.switch_port_type);
-            this.groupBox2.Controls.Add(this.label8);
-            this.groupBox2.Controls.Add(this.label7);
-            this.groupBox2.Controls.Add(this.label6);
-            this.groupBox2.Controls.Add(this.closedstateport);
-            this.groupBox2.Controls.Add(this.opened_port);
-            this.groupBox2.Controls.Add(this.switchport);
-            this.groupBox2.Location = new System.Drawing.Point(11, 117);
-            this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(208, 107);
-            this.groupBox2.TabIndex = 1;
-            this.groupBox2.TabStop = false;
-            this.groupBox2.Text = "IP9212 settings";
-            // 
-            // closed_port_state_type
-            // 
-            this.closed_port_state_type.AutoSize = true;
-            this.closed_port_state_type.Location = new System.Drawing.Point(147, 79);
-            this.closed_port_state_type.Name = "closed_port_state_type";
-            this.closed_port_state_type.Size = new System.Drawing.Size(48, 17);
-            this.closed_port_state_type.TabIndex = 5;
-            this.closed_port_state_type.Text = "NOff";
-            this.closed_port_state_type.UseVisualStyleBackColor = true;
-            // 
-            // opened_port_state_type
-            // 
-            this.opened_port_state_type.AutoSize = true;
-            this.opened_port_state_type.Location = new System.Drawing.Point(147, 53);
-            this.opened_port_state_type.Name = "opened_port_state_type";
-            this.opened_port_state_type.Size = new System.Drawing.Size(48, 17);
-            this.opened_port_state_type.TabIndex = 3;
-            this.opened_port_state_type.Text = "NOff";
-            this.opened_port_state_type.UseVisualStyleBackColor = true;
-            // 
-            // switch_port_type
-            // 
-            this.switch_port_type.AutoSize = true;
-            this.switch_port_type.Checked = true;
-            this.switch_port_type.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.switch_port_type.Location = new System.Drawing.Point(147, 28);
-            this.switch_port_type.Name = "switch_port_type";
-            this.switch_port_type.Size = new System.Drawing.Size(48, 17);
-            this.switch_port_type.TabIndex = 1;
-            this.switch_port_type.Text = "NOff";
-            this.switch_port_type.UseVisualStyleBackColor = true;
-            // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(9, 79);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(86, 13);
-            this.label8.TabIndex = 5;
-            this.label8.Text = "Closed state port";
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(9, 54);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(92, 13);
-            this.label7.TabIndex = 5;
-            this.label7.Text = "Opened state port";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(9, 28);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(87, 13);
-            this.label6.TabIndex = 5;
-            this.label6.Text = "Press button port";
-            // 
-            // closedstateport
-            // 
-            this.closedstateport.Location = new System.Drawing.Point(101, 76);
-            this.closedstateport.Name = "closedstateport";
-            this.closedstateport.Size = new System.Drawing.Size(38, 20);
-            this.closedstateport.TabIndex = 4;
-            // 
-            // opened_port
-            // 
-            this.opened_port.Location = new System.Drawing.Point(102, 51);
-            this.opened_port.Name = "opened_port";
-            this.opened_port.Size = new System.Drawing.Size(38, 20);
-            this.opened_port.TabIndex = 2;
-            // 
-            // switchport
-            // 
-            this.switchport.Location = new System.Drawing.Point(102, 25);
-            this.switchport.Name = "switchport";
-            this.switchport.Size = new System.Drawing.Size(38, 20);
-            this.switchport.TabIndex = 0;
             // 
             // groupBox1
             // 
@@ -277,24 +183,29 @@ namespace ASCOM.Vedrus_rolloffroof
             this.groupBox1.Controls.Add(this.pass);
             this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.port);
-            this.groupBox1.Location = new System.Drawing.Point(11, 8);
+            this.groupBox1.Location = new System.Drawing.Point(16, 12);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(208, 103);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.groupBox1.Size = new System.Drawing.Size(477, 158);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "IP9212 device";
+            this.groupBox1.Text = "Device";
             // 
             // groupBox6
             // 
+            this.groupBox6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox6.Controls.Add(this.lblDriverInfo);
             this.groupBox6.Controls.Add(this.lblVersion);
             this.groupBox6.Controls.Add(this.linkAviosys);
             this.groupBox6.Controls.Add(this.linkAstromania);
             this.groupBox6.Controls.Add(this.picAstromania);
             this.groupBox6.Controls.Add(this.pictureBox1);
-            this.groupBox6.Location = new System.Drawing.Point(231, 9);
+            this.groupBox6.Location = new System.Drawing.Point(502, 14);
+            this.groupBox6.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Size = new System.Drawing.Size(261, 184);
+            this.groupBox6.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.groupBox6.Size = new System.Drawing.Size(392, 294);
             this.groupBox6.TabIndex = 3;
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "About";
@@ -303,9 +214,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.lblDriverInfo.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.lblDriverInfo.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.lblDriverInfo.Location = new System.Drawing.Point(60, 14);
+            this.lblDriverInfo.Location = new System.Drawing.Point(90, 22);
+            this.lblDriverInfo.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblDriverInfo.Name = "lblDriverInfo";
-            this.lblDriverInfo.Size = new System.Drawing.Size(195, 78);
+            this.lblDriverInfo.Size = new System.Drawing.Size(292, 120);
             this.lblDriverInfo.TabIndex = 11;
             this.lblDriverInfo.Text = "Driver name";
             // 
@@ -314,9 +226,10 @@ namespace ASCOM.Vedrus_rolloffroof
             this.lblVersion.AutoSize = true;
             this.lblVersion.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.lblVersion.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.lblVersion.Location = new System.Drawing.Point(60, 93);
+            this.lblVersion.Location = new System.Drawing.Point(90, 143);
+            this.lblVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblVersion.Name = "lblVersion";
-            this.lblVersion.Size = new System.Drawing.Size(72, 13);
+            this.lblVersion.Size = new System.Drawing.Size(104, 20);
             this.lblVersion.TabIndex = 2;
             this.lblVersion.Text = "Driver version";
             // 
@@ -324,21 +237,23 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.linkAviosys.AutoSize = true;
             this.linkAviosys.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.linkAviosys.Location = new System.Drawing.Point(120, 160);
+            this.linkAviosys.Location = new System.Drawing.Point(180, 246);
+            this.linkAviosys.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linkAviosys.Name = "linkAviosys";
-            this.linkAviosys.Size = new System.Drawing.Size(94, 13);
+            this.linkAviosys.Size = new System.Drawing.Size(106, 20);
             this.linkAviosys.TabIndex = 2;
             this.linkAviosys.TabStop = true;
-            this.linkAviosys.Text = "Device by Aviosys";
+            this.linkAviosys.Text = "Device by MO";
             this.linkAviosys.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkAviosys_LinkClicked);
             // 
             // linkAstromania
             // 
             this.linkAstromania.AutoSize = true;
             this.linkAstromania.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.linkAstromania.Location = new System.Drawing.Point(10, 159);
+            this.linkAstromania.Location = new System.Drawing.Point(15, 245);
+            this.linkAstromania.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.linkAstromania.Name = "linkAstromania";
-            this.linkAstromania.Size = new System.Drawing.Size(104, 13);
+            this.linkAstromania.Size = new System.Drawing.Size(155, 20);
             this.linkAstromania.TabIndex = 1;
             this.linkAstromania.TabStop = true;
             this.linkAstromania.Text = "Driver by Astromania";
@@ -349,7 +264,8 @@ namespace ASCOM.Vedrus_rolloffroof
             this.picAstromania.Cursor = System.Windows.Forms.Cursors.Hand;
             this.picAstromania.Image = global::ASCOM.Vedrus_rolloffroof.Properties.Resources.logo_48_blue;
             this.picAstromania.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.picAstromania.Location = new System.Drawing.Point(9, 23);
+            this.picAstromania.Location = new System.Drawing.Point(14, 35);
+            this.picAstromania.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.picAstromania.Name = "picAstromania";
             this.picAstromania.Size = new System.Drawing.Size(48, 48);
             this.picAstromania.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -361,7 +277,8 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.pictureBox1.Cursor = System.Windows.Forms.Cursors.Hand;
             this.pictureBox1.Image = global::ASCOM.Vedrus_rolloffroof.Properties.Resources.ASCOM;
-            this.pictureBox1.Location = new System.Drawing.Point(9, 93);
+            this.pictureBox1.Location = new System.Drawing.Point(14, 143);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(48, 56);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
@@ -384,10 +301,13 @@ namespace ASCOM.Vedrus_rolloffroof
             this.groupBox4.Controls.Add(this.txtCacheReadReduced);
             this.groupBox4.Controls.Add(this.txtCacheRead);
             this.groupBox4.Controls.Add(this.txtCacheConnect);
+            this.groupBox4.Controls.Add(this.chkDebugFlag);
             this.groupBox4.Controls.Add(this.chkTrace);
-            this.groupBox4.Location = new System.Drawing.Point(11, 230);
+            this.groupBox4.Location = new System.Drawing.Point(16, 180);
+            this.groupBox4.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Size = new System.Drawing.Size(481, 146);
+            this.groupBox4.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.groupBox4.Size = new System.Drawing.Size(477, 265);
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
             this.groupBox4.Text = "Advanced";
@@ -396,9 +316,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label9.AutoSize = true;
             this.label9.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label9.Location = new System.Drawing.Point(109, 19);
+            this.label9.Location = new System.Drawing.Point(164, 29);
+            this.label9.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label9.Name = "label9";
-            this.label9.Size = new System.Drawing.Size(55, 13);
+            this.label9.Size = new System.Drawing.Size(81, 20);
             this.label9.TabIndex = 1;
             this.label9.Text = "Language";
             // 
@@ -406,18 +327,20 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.cmbLang.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbLang.FormattingEnabled = true;
-            this.cmbLang.Location = new System.Drawing.Point(170, 15);
+            this.cmbLang.Location = new System.Drawing.Point(255, 23);
+            this.cmbLang.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cmbLang.Name = "cmbLang";
-            this.cmbLang.Size = new System.Drawing.Size(132, 21);
+            this.cmbLang.Size = new System.Drawing.Size(196, 28);
             this.cmbLang.TabIndex = 1;
             // 
             // label16
             // 
             this.label16.AutoSize = true;
             this.label16.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label16.Location = new System.Drawing.Point(316, 118);
+            this.label16.Location = new System.Drawing.Point(415, 232);
+            this.label16.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label16.Name = "label16";
-            this.label16.Size = new System.Drawing.Size(24, 13);
+            this.label16.Size = new System.Drawing.Size(34, 20);
             this.label16.TabIndex = 11;
             this.label16.Text = "sec";
             // 
@@ -425,9 +348,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label10.AutoSize = true;
             this.label10.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label10.Location = new System.Drawing.Point(316, 93);
+            this.label10.Location = new System.Drawing.Point(415, 193);
+            this.label10.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(24, 13);
+            this.label10.Size = new System.Drawing.Size(34, 20);
             this.label10.TabIndex = 11;
             this.label10.Text = "sec";
             // 
@@ -435,9 +359,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label11.AutoSize = true;
             this.label11.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label11.Location = new System.Drawing.Point(316, 47);
+            this.label11.Location = new System.Drawing.Point(415, 122);
+            this.label11.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(24, 13);
+            this.label11.Size = new System.Drawing.Size(34, 20);
             this.label11.TabIndex = 5;
             this.label11.Text = "sec";
             // 
@@ -445,9 +370,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label12.AutoSize = true;
             this.label12.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label12.Location = new System.Drawing.Point(316, 70);
+            this.label12.Location = new System.Drawing.Point(415, 158);
+            this.label12.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(24, 13);
+            this.label12.Size = new System.Drawing.Size(34, 20);
             this.label12.TabIndex = 8;
             this.label12.Text = "sec";
             // 
@@ -455,9 +381,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label1.AutoSize = true;
             this.label1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label1.Location = new System.Drawing.Point(7, 118);
+            this.label1.Location = new System.Drawing.Point(9, 231);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(258, 13);
+            this.label1.Size = new System.Drawing.Size(380, 20);
             this.label1.TabIndex = 9;
             this.label1.Text = "Caching switch ouput port data during open/close for";
             // 
@@ -465,9 +392,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label13.AutoSize = true;
             this.label13.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label13.Location = new System.Drawing.Point(7, 93);
+            this.label13.Location = new System.Drawing.Point(9, 192);
+            this.label13.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label13.Name = "label13";
-            this.label13.Size = new System.Drawing.Size(169, 13);
+            this.label13.Size = new System.Drawing.Size(251, 20);
             this.label13.TabIndex = 9;
             this.label13.Text = "Caching switch ouput port data for";
             // 
@@ -475,9 +403,10 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label14.AutoSize = true;
             this.label14.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label14.Location = new System.Drawing.Point(6, 47);
+            this.label14.Location = new System.Drawing.Point(8, 121);
+            this.label14.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label14.Name = "label14";
-            this.label14.Size = new System.Drawing.Size(84, 13);
+            this.label14.Size = new System.Drawing.Size(124, 20);
             this.label14.TabIndex = 3;
             this.label14.Text = "Network timeout";
             // 
@@ -485,73 +414,93 @@ namespace ASCOM.Vedrus_rolloffroof
             // 
             this.label15.AutoSize = true;
             this.label15.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.label15.Location = new System.Drawing.Point(6, 70);
+            this.label15.Location = new System.Drawing.Point(8, 157);
+            this.label15.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(155, 13);
+            this.label15.Size = new System.Drawing.Size(226, 20);
             this.label15.TabIndex = 6;
             this.label15.Text = "Caching check connections for";
             // 
             // txtNetworkTimeout
             // 
-            this.txtNetworkTimeout.Location = new System.Drawing.Point(277, 44);
+            this.txtNetworkTimeout.Location = new System.Drawing.Point(357, 118);
+            this.txtNetworkTimeout.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtNetworkTimeout.Name = "txtNetworkTimeout";
-            this.txtNetworkTimeout.Size = new System.Drawing.Size(33, 20);
+            this.txtNetworkTimeout.Size = new System.Drawing.Size(48, 26);
             this.txtNetworkTimeout.TabIndex = 2;
             // 
             // txtCacheReadReduced
             // 
-            this.txtCacheReadReduced.Location = new System.Drawing.Point(277, 115);
+            this.txtCacheReadReduced.Enabled = false;
+            this.txtCacheReadReduced.Location = new System.Drawing.Point(357, 227);
+            this.txtCacheReadReduced.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtCacheReadReduced.Name = "txtCacheReadReduced";
-            this.txtCacheReadReduced.Size = new System.Drawing.Size(33, 20);
+            this.txtCacheReadReduced.Size = new System.Drawing.Size(48, 26);
             this.txtCacheReadReduced.TabIndex = 5;
             // 
             // txtCacheRead
             // 
-            this.txtCacheRead.Location = new System.Drawing.Point(277, 90);
+            this.txtCacheRead.Enabled = false;
+            this.txtCacheRead.Location = new System.Drawing.Point(357, 188);
+            this.txtCacheRead.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtCacheRead.Name = "txtCacheRead";
-            this.txtCacheRead.Size = new System.Drawing.Size(33, 20);
+            this.txtCacheRead.Size = new System.Drawing.Size(48, 26);
             this.txtCacheRead.TabIndex = 4;
             // 
             // txtCacheConnect
             // 
-            this.txtCacheConnect.Location = new System.Drawing.Point(277, 67);
+            this.txtCacheConnect.Location = new System.Drawing.Point(357, 153);
+            this.txtCacheConnect.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtCacheConnect.Name = "txtCacheConnect";
-            this.txtCacheConnect.Size = new System.Drawing.Size(33, 20);
+            this.txtCacheConnect.Size = new System.Drawing.Size(48, 26);
             this.txtCacheConnect.TabIndex = 3;
             // 
             // chkTrace
             // 
             this.chkTrace.AutoSize = true;
-            this.chkTrace.Checked = true;
-            this.chkTrace.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkTrace.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.chkTrace.Location = new System.Drawing.Point(8, 19);
+            this.chkTrace.Location = new System.Drawing.Point(12, 29);
+            this.chkTrace.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkTrace.Name = "chkTrace";
-            this.chkTrace.Size = new System.Drawing.Size(69, 17);
+            this.chkTrace.Size = new System.Drawing.Size(97, 24);
             this.chkTrace.TabIndex = 0;
             this.chkTrace.Text = "Trace on";
+            this.toolTip1.SetToolTip(this.chkTrace, "Write log files");
             this.chkTrace.UseVisualStyleBackColor = true;
+            // 
+            // chkDebugFlag
+            // 
+            this.chkDebugFlag.AutoSize = true;
+            this.chkDebugFlag.Checked = true;
+            this.chkDebugFlag.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkDebugFlag.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.chkDebugFlag.Location = new System.Drawing.Point(12, 63);
+            this.chkDebugFlag.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.chkDebugFlag.Name = "chkDebugFlag";
+            this.chkDebugFlag.Size = new System.Drawing.Size(188, 24);
+            this.chkDebugFlag.TabIndex = 0;
+            this.chkDebugFlag.Text = "Debug (emulation) on";
+            this.toolTip1.SetToolTip(this.chkDebugFlag, "Used for debugging purposes, do not enable unless you know what are you doing");
+            this.chkDebugFlag.UseVisualStyleBackColor = true;
             // 
             // SetupDialogForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(504, 378);
+            this.ClientSize = new System.Drawing.Size(912, 472);
             this.Controls.Add(this.groupBox4);
             this.Controls.Add(this.groupBox6);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.cmdCancel);
             this.Controls.Add(this.cmdOK);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "SetupDialogForm";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "IP9212_rolloffroof2 Setup";
-            this.groupBox2.ResumeLayout(false);
-            this.groupBox2.PerformLayout();
+            this.Text = "Dome Driver Setup";
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox6.ResumeLayout(false);
@@ -576,16 +525,6 @@ namespace ASCOM.Vedrus_rolloffroof
         private System.Windows.Forms.TextBox pass;
         private System.Windows.Forms.TextBox login;
         private System.Windows.Forms.TextBox ipaddr;
-        private System.Windows.Forms.GroupBox groupBox2;
-        private System.Windows.Forms.CheckBox closed_port_state_type;
-        private System.Windows.Forms.CheckBox opened_port_state_type;
-        private System.Windows.Forms.CheckBox switch_port_type;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.TextBox closedstateport;
-        private System.Windows.Forms.TextBox opened_port;
-        private System.Windows.Forms.TextBox switchport;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox6;
         private System.Windows.Forms.Label lblVersion;
@@ -610,5 +549,7 @@ namespace ASCOM.Vedrus_rolloffroof
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox txtCacheReadReduced;
         private System.Windows.Forms.Label lblDriverInfo;
+        private System.Windows.Forms.CheckBox chkDebugFlag;
+        private System.Windows.Forms.ToolTip toolTip1;
     }
 }
